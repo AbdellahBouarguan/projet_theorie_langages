@@ -4,3 +4,9 @@
 *.exe
 bin/
 obj/
+
+
+# Dossier de compilation CMake
+build/
+CMakeCache.txt
+CMakeFiles/
