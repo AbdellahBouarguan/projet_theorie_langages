@@ -1,0 +1,6 @@
+# Exécutables et fichiers objets
+*.o
+*.out
+*.exe
+bin/
+obj/
