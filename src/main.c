@@ -32,7 +32,7 @@ int main()
         {
         case 1:
             printf("Entrez le nom du fichier (ex: data/test.dot) : ");
-            scanf("%255s", filename);
+            scanf(" %255[^\n\r]", filename);
             free_automaton(automate);
             automate = create_automaton();
             if (load_automaton_from_dot(automate, filename))
