@@ -1,0 +1,34 @@
+# Récupération automatique de tous les fichiers .c dans digraph Automate {
+
+digraph Automate {
+    rankdir=LR;
+
+    // États normaux
+    0 [shape=circle];
+    2 [shape=circle];
+
+
+    1 [shape=circle];
+    3 [shape=circle];
+
+    // Flèche pour l'état initial
+    "" [shape=none];
+    "" -> 0;
+
+    // Flèches sortantes pour les états finaux
+    1 -> fin1 [arrowhead=empty, label="", style=solid];
+    3 -> fin3 [arrowhead=empty, label="", style=solid];
+
+    // Nœuds invisibles pour les flèches de fin
+    fin1 [shape=none, label="", width=0, height=0];
+    fin3 [shape=none, label="", width=0, height=0];
+
+    // Transitions
+    0 -> 1 [label="a"];
+    0 -> 2 [label="b"];
+    1 -> 0 [label="b"];
+    1 -> 3 [label="a"];
+    1 -> 2 [label="a"];
+    2 -> 3 [label="c"];
+    3 -> 2 [label="a"];
+}
