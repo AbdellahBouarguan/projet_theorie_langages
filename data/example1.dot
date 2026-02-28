@@ -1,0 +1,28 @@
+digraph Automate {
+    rankdir=LR;
+
+    
+    0 [shape=circle];
+    2 [shape=circle];
+    
+    
+    1 [shape=circle];
+    
+
+    
+    "" [shape=none];
+    "" -> 0;
+
+    // Flèches sortantes pour les états finaux
+    2 -> fin1 [arrowhead=empty, label="", style=solid];
+   
+    
+    // Nœuds invisibles pour les flèches de fin
+    fin1 [shape=none, label="", width=0, height=0];
+    fin3 [shape=none, label="", width=0, height=0];
+
+    // Transitions
+    0 -> 1 [label="a"];
+    1 -> 2 [label="b"];
+    
+}

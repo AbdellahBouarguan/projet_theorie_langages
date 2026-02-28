@@ -1,5 +1,3 @@
-# Récupération automatique de tous les fichiers .c dans digraph Automate {
-
 digraph Automate {
     rankdir=LR;
 
