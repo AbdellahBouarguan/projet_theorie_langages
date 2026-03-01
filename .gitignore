@@ -1,12 +1,19 @@
-# Exécutables et fichiers objets
-*.o
-*.out
-*.exe
-bin/
-obj/
-
 
 # Dossier de compilation CMake
 build/
 CMakeCache.txt
 CMakeFiles/
+
+# Fichiers générés par la compilation LaTeX
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.bcf
+*.blg
+*.run.xml
