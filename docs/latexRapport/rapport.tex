@@ -1,0 +1,223 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{geometry}
+
+% Configuration de la géométrie de la page
+\geometry{
+a4paper,
+left=25mm,
+right=25mm,
+top=25mm,
+bottom=25mm
+}
+
+% Configuration pour le code source
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+}
+\lstset{style=mystyle}
+
+\title{
+\vspace{-2cm}
+\begin{center}
+\large Université Abdelmalek Essaadi \
+\large École Nationale des Sciences Appliquées - Tétouan
+\end{center}
+\vspace{2cm}
+\HRule \
+\vspace{0.5cm}
+\textbf{\huge Projet Théorie des Langages} \
+\vspace{0.5cm}
+\Large Partie 1 : Lecture et affichage d'un automate \
+\HRule \
+\vspace{2cm}
+}
+
+\author{
+\textbf{Travail réalisé par l'équipe :} \\
+Bouarguan Abdellah \\  
+Ben Yacoub Nizar \\
+El Ghazouani Marouane \\
+Cherradi Ilyass \\
+El Younoussi Nafisa
+}
+\date{Période de réalisation : 23 Février 2026 - 29 Février 2026}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+Dans le cadre du module de Théorie des Langages et Compilation, l'objectif global de ce projet est de développer un programme permettant de remplir une partie de la table des symboles à partir soit d'une expression régulière, soit d'un automate fini décrit sous forme d'un fichier dot. Ce rapport détaille la "Partie 1: Lecture et affichage d'un automate", travail réalisé entre le 23 Février et le 29 Février 2026. Il retrace notre démarche chronologique, de la recherche théorique à l'implémentation finale des structures, en passant par la mise en place d'un environnement de travail collaboratif robuste.
+
+\section{Recherche Préliminaire, Outils et Étude de Projets Existants}
+
+\subsection{Concepts Théoriques}
+D'un point de vue formel, et comme défini dans le support de cours de Théorie des Langages, un automate fini (ou machine à états finis) est un modèle mathématique de calcul. Il est précisément caractérisé par un 5-uplet $(Q, A, \delta, q_0, F)$ où :
+\begin{itemize}
+\item $Q$ représente l'ensemble des états (qui est fini dans le cas d'un automate fini);
+\item $A$ désigne l'alphabet de l'entrée;
+\item $\delta$ est la fonction de transition, définie formellement comme $\delta: Q \times A \rightarrow Q$;
+\item $q_0 \in Q$ est l'état initial, sachant qu'un automate peut éventuellement posséder plusieurs états initiaux ($q_0 \subseteq Q$);
+\item $F \subseteq Q$ constitue l'ensemble des états d'acceptation (ou états finaux).
+\end{itemize}
+En informatique, ces modèles sont fondamentaux dans la conception de compilateurs, l'analyse lexicale, et la vérification de systèmes.
+\subsection{Format DOT et Écosystème GraphviZ}
+Pour décrire la structure de nos automates, nous avons opté pour le format \texttt{.dot}, conformément aux spécifications du projet. Il s'agit d'un langage de description de graphes en texte brut issu de l'écosystème open-source \textbf{GraphviZ}. Ce format intuitif modélise naturellement les états sous forme de nœuds et les transitions sous forme d'arêtes orientées (\textit{edges}).
+
+\subsection{Manipulation Visuelle}
+Afin de vérifier la validité de notre parsing, il était nécessaire de visualiser graphiquement les automates. Sur environnement Linux, nous avons utilisé l'utilitaire de commande \texttt{dot} fourni par GraphviZ pour générer des images (PNG ou PDF) à partir de nos fichiers textes. La commande employée était typiquement : \
+\texttt{dot -Tpng automate.dot -o automate.png}
+
+Pour faciliter le flux de travail des membres de l'équipe opérant sous environnement Windows, des convertisseurs GraphviZ en ligne, tels que \textit{GraphvizOnline}, ont été utilisés comme alternative efficace sans nécessiter d'installation locale complexe.
+
+\subsection{Inspiration et Étude de Projets Existants}
+Avant d'entamer la phase d'implémentation, une recherche a été menée sur des plateformes de partage de code telles que \textbf{GitHub}. L'analyse de projets open-source similaires (notamment des parsers de graphes développés en C et des manipulateurs d'expressions régulières) nous a permis d'identifier les meilleures pratiques de l'industrie. Ces recherches nous ont particulièrement inspirés sur la gestion dynamique de la mémoire et les design patterns d'analyse syntaxique pour le traitement de fichiers texte de manière robuste.
+
+\section{Environnement de Travail et Choix Techniques}
+
+\subsection{Le Langage C}
+Le langage \textbf{C} a été retenu pour le développement de ce projet. Ce choix se justifie d'une part par son adéquation naturelle avec les concepts bas niveau de la théorie des langages (développement d'analyseurs lexicaux et syntaxiques). D'autre part, le C offre un contrôle fin sur la gestion de la mémoire via les pointeurs, une caractéristique indispensable pour optimiser la manipulation des tables de symboles et des graphes volumineux.
+
+\subsection{Git et Collaboration sur GitHub}
+Étant une équipe de 5 membres, l'utilisation d'un système de contrôle de version distribué tel que \textbf{Git} (hébergé sur GitHub) était impérative. L'intégralité du code source de notre projet ainsi que l'historique de nos contributions sont accessibles sur notre dépôt public : \url{https://github.com/AbdellahBouarguan/projet_theorie_langages}.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../projectStructre.png}
+    \caption{Structure de notre dépôt public sur GitHub}
+    \label{fig:project_structure}
+\end{figure}
+
+La collaboration s'est orchestrée autour de la stratégie du \textit{Feature Branching} : chaque développeur travaillait sur une branche isolée pour sa tâche spécifique avant de soumettre une \textit{Pull Request}. La protection de la branche principale (\texttt{main}) a été instaurée pour empêcher l'écrasement involontaire du code et s'assurer que seules des implémentations testées y soient fusionnées.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../branches.png}
+    \caption{Illustration de notre stratégie de Feature Branching}
+    \label{fig:branching_strategy}
+\end{figure}
+
+\subsection{Standardisation de la Compilation avec CMake}
+Initialement, la compilation du projet reposait sur un simple \texttt{Makefile}. Cependant, une problématique de portabilité s'est rapidement imposée au sein de notre équipe hétérogène (utilisation de Linux , couplée à des systèmes d'exploitation Windows). Les commandes de shell Unix appelées dans le fichier \texttt{Make} n'étaient pas reconnues nativement sous Windows.
+
+Pour résoudre ce goulet d'étranglement, nous avons migré vers \textbf{CMake}. Cet outil génère un processus de compilation agnostique vis-à-vis du système d'exploitation, créant des \texttt{Makefiles} sous Linux et des solutions Visual Studio ou MinGW sous Windows, uniformisant ainsi notre chaîne de build multiplateforme.
+
+\section{Organisation et Répartition du Travail}
+La réussite de cette première phase repose sur une répartition stricte et coordonnée des responsabilités entre les membres de l'équipe :
+
+\begin{itemize}
+\item \textbf{Abdellah} : Chargé de l'initialisation de l'architecture des répertoires et de la configuration de l'infrastructure de base (Git et CMake). Il supervise le bon fonctionnement du projet et la coordination de l'équipe, gère la chaîne de compilation et l'exécution du programme, et assure la rédaction documentaire garantissant la traçabilité des choix techniques.
+\item \textbf{Nizar} : Responsable de la traduction des automates finis vus en cours vers le format DOT à l'aide de l'outil en ligne \textbf{GraphvizOnline} (génération des fichiers \texttt{data/example1.dot} et \texttt{data/example2.dot}). Il a également pris en charge la modélisation mathématique en structures de données logicielles (conception du module \texttt{automate.h}) et a contribué au développement du moteur d'affichage (\texttt{display.c}).
+\item \textbf{Marouane} : En charge du développement du moteur d'analyse syntaxique permettant la lecture et l'extraction de données depuis les fichiers DOT (\texttt{parser.c}). Il a également contribué à la conception de la structure de données (\texttt{automate.h}) et a initialisé l'intégration de cet automate au sein du \textit{parser}.
+\item \textbf{Ilyas} : Développeur du module d'affichage console, s'assurant que la machinerie interne soit exposée lisiblement à l'écran (\texttt{display.c}). Il a aussi activement participé au développement du module d'analyse syntaxique (\texttt{parser.c}).
+\item \textbf{Nafissa} : Responsable de l'intégration globale des modules et conceptrice de l'interface utilisateur interactive (le menu principal dans \texttt{main.c}). Elle a aussi activement participée au développement du module d'analyse syntaxique (\texttt{parser.c}).
+\end{itemize}
+
+\section{Conception et Implémentation de la Phase 1}
+
+\subsection{Structures de données (\texttt{automate.h})}
+Afin de répondre au premier objectif du cahier des charges demandant de proposer des structures de données permettant l'implémentation d'un automate fini, nous avons défini des structures en C capables de stocker les états, les transitions, l'alphabet, ainsi que la nature de chaque état (initial, final).
+
+La structure \texttt{Transition} modélise un arc entre deux états, étiqueté par un symbole de l'alphabet :
+\lstinputlisting[language=C, caption=Structure \texttt{Transition} (extraite de automate.h), linerange={11-16}]{../../include/automate.h}
+
+La structure \texttt{Automaton} regroupe toutes les informations pertinentes pour définir formellement l'automate (états, transitions, alphabet, booléens pour la nature des états) :
+\lstinputlisting[language=C, caption=Structure \texttt{Automaton} (extraite de automate.h), linerange={6-9,18-30}]{../../include/automate.h}
+
+\subsection{Lecture et stockage (Parsing dans \texttt{parser.c})}
+Le deuxième objectif consistait à ajouter une fonction permettant de lire et stocker un automate fini à partir d'un fichier \texttt{.dot}. L'un des défis majeurs fut l'extraction fiable des informations pertinentes de ce format texte.
+
+Nous avons implémenté la fonction \texttt{load\_automaton\_from\_dot}, qui constitue le cœur de notre analyseur syntaxique (\textit{parser}). Son rôle est de parcourir le fichier texte et de traduire les descriptions graphiques en données exploitables en mémoire. Afin de la rendre robuste et de contourner les spécificités du format DOT, la fonction opère selon les étapes séquentielles suivantes :
+
+\begin{enumerate}
+    \item \textbf{Ouverture sécurisée du fichier} : Le fichier est ouvert en mode lecture (\texttt{"r"}). Si le fichier est introuvable ou illisible, le programme signale une erreur dans la console et interrompt le chargement proprement, évitant ainsi une erreur de segmentation.
+
+    \item \textbf{Filtrage ligne par ligne} : Le fichier est lu ligne après ligne via la fonction \texttt{fgets}. Pour optimiser le traitement, le programme ignore les lignes de décoration globale et se concentre exclusivement sur les lignes définissant des relations, identifiables par la présence de la chaîne d'arête \texttt{->}.
+
+    \item \textbf{Détection de l'état initial (Astuce du nœud fantôme)} : Dans les conventions de tracé GraphviZ, un état initial est souvent matérialisé par une flèche provenant d'un nœud invisible ou vide (par exemple : \texttt{"" -> 0}). Notre algorithme intercepte ce motif vide \texttt{""}, le remplace dynamiquement en mémoire par un identifiant lisible (\texttt{"IN"}), ce qui permet à la fonction \texttt{sscanf} de l'analyser. L'état pointé par cette flèche voit alors son attribut \texttt{is\_initial} basculer à \texttt{true}.
+
+    \item \textbf{Détection des états finaux} : De manière similaire, notre code gère une autre convention où un état final pointe vers un nœud d'arrêt (par exemple : \texttt{3 -> fin\_node}). Si la destination de la flèche commence par les lettres \texttt{"fin"}, l'état d'origine est enregistré comme étant un état acceptant (\texttt{is\_final = true}).
+
+    \item \textbf{Extraction des transitions régulières et construction de l'alphabet} : Pour les véritables transitions entre deux états de l'automate :
+    \begin{itemize}
+        \item Le programme isole les identifiants de l'état de départ et de l'état d'arrivée, en prenant soin de nettoyer les éventuels caractères parasites de syntaxe (tels que les crochets d'attributs \texttt{[} ou les points-virgules de fin de ligne \texttt{;}).
+        \item Il recherche ensuite l'attribut \texttt{label=} pour en extraire le symbole de transition, en gérant de manière sécurisée la lecture entre les guillemets.
+        \item Ces informations sont structurées sous forme d'une \texttt{Transition} puis ajoutées au tableau \texttt{transitions} de notre automate.
+        \item \textit{Gestion de l'alphabet :} Si l'étiquette extraite n'est pas le mot vide (représenté ici par la chaîne \texttt{"epsilon"}), elle est envoyée à la fonction \texttt{add\_to\_alphabet} pour enrichir dynamiquement l'alphabet global de l'automate sans créer de doublons.
+    \end{itemize}
+
+    \item \textbf{Sécurité par défaut (\textit{Fallback} initial)} : Une fois le fichier entièrement lu et refermé, le programme effectue une ultime vérification. Si le formatage du fichier DOT ne précisait explicitement aucun état initial, l'algorithme affecte cette propriété par défaut au premier nœud identifié (indice 0), garantissant ainsi que l'automate reste valide et manipulable pour les opérations futures.
+\end{enumerate}
+
+\lstinputlisting[language=C, caption=Logique de la fonction \texttt{load\_automaton\_from\_dot} (fichier \texttt{parser.c}), linerange={72-202}]{../../src/parser.c}
+
+
+\subsection{Moteur d'affichage (\texttt{display.c})}
+Une fois l'automate chargé, le cahier des charges exigeait d'ajouter une fonction permettant d'affichage les informations d'un automate passé en paramètre la liste des états, la liste des transitions, l'alphabet, les états finaux, les états initiaux. Ainsi, la fonction \texttt{display\_automaton} a été développée.
+
+Son rôle est de parcourir la structure en mémoire et d'afficher de façon lisible dans la console :
+\begin{itemize}
+\item La liste de tous les états récupérés.
+\item La liste restreinte des états initiaux et finaux (états acceptants).
+\item L'alphabet complet déduit des étiquettes des transitions.
+\item La liste complète des transitions formatée (ex: $\delta(q_0, a) = q_1$).
+\end{itemize}
+
+\subsection{Interface interactive (\texttt{main.c})}
+Pour orchestrer ces différentes fonctionnalités, nous devions ajouter un menu à notre programme. Ce menu a été intégré au fichier \texttt{main.c} et propose les options suivantes de manière cyclique :
+\begin{enumerate}
+\item \textbf{Charger un automate :} L'utilisateur saisit le chemin du fichier \texttt{.dot}.
+\item \textbf{Afficher les informations :} Invoque la fonction \texttt{display\_automaton}.
+\item \textbf{Quitter :} Libère la mémoire et termine le programme proprement.
+\end{enumerate}
+
+\section{Difficultés Rencontrées et Solutions}
+Le développement de cette première itération n'a pas été sans obstacles. Nous soulignons notamment trois problématiques majeures résolues par l'équipe :
+
+\begin{enumerate}
+\item \textbf{Manipulation ardue des chaînes de caractères en C} : L'extraction fiable des labels de transition encadrés par des guillemets dans les fichiers DOT a nécessité des manipulations de pointeurs complexes et une forte vigilance quant aux débordements de tampons (buffers overflow), le C ne possédant pas de regex natives.
+\item \textbf{Courbe d'apprentissage de Git} : Dans les premiers jours, la synchronisation du travail a été parasitée par des conflits de fusion (\textit{merge conflicts}). Cela a imposé un temps d'adaptation et des sessions de résolution de conflits didactiques entre les membres.
+\item \textbf{Incompatibilité OS pour la compilation} : La rigidité de notre premier \texttt{Makefile} n'a pas survécu à l'environnement Windows d'une partie de l'équipe, paralysant momentanément la compilation avant que nous n'adoptions l'approche \textit{cross-platform} de CMake.
+\item \textbf{Lecture des chemins de fichiers sous Windows} : Nous avons rencontré un problème lors de la saisie des chemins de fichiers avec la fonction \\ \texttt{scanf("\%255s", filename)}. Sous Windows, les chemins contiennent souvent des espaces et des antislahs qui faisaient échouer la lecture simple par cette fonction, nécessitant des ajustements pour capturer correctement la chaîne de caractères.
+\end{enumerate}
+
+\section{Conclusion de la Phase 1}
+En conclusion pour cette première semaine de développement, les bases techniques et organisationnelles du projet ont été solidement établies. La modélisation mathématique de l'automate fini a été transposée efficacement en structures C opérationnelles. Le système est désormais capable de dialoguer avec des fichiers standards (DOT) et de restituer l'information extraite, validant ainsi la totalité de la Partie 1 et ouvrant la voie à des manipulations plus complexes (opérations sur les automates, déterminisation, minimisation, construction de la table des symboles).
+
+\end{document}
