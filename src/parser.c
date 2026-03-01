@@ -26,7 +26,7 @@ void free_automaton(Automaton *automate)
   }
 }
 
-// Extract state ID from strings like "q1", "S2", or just "1"
+// Extraire l'identifiant d’un état à partir de chaînes comme "q1", "S2" ou simplement "1"
 static int parse_etat_id(const char *str)
 {
   while (*str && !isdigit(*str))
@@ -45,7 +45,7 @@ static int get_or_create_etat_idx(Automaton *automate, int etat_id)
   for (int i = 0; i < automate->num_etats; i++)
   {
     if (automate->etats[i] == etat_id)
-      return i; // Index found
+      return i; // Index trouvé
   }
   if (automate->num_etats < MAX_ETATS)
   {
@@ -84,29 +84,29 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename)
   {
     char *arrow_pos = strstr(line, "->");
 
-    // We only care about lines with transitions
+    // Nous nous intéressons uniquement aux lignes contenant des transitions
     if (arrow_pos)
     {
       char from_str[64] = {0};
       char to_str[64] = {0};
       char label_str[64] = "epsilon";
 
-      // Workaround for empty string nodes (e.g., "" -> 0)
-      // Replace "" with a placeholder "START" so sscanf parses it as a single token easily
+      // Solution pour les nœuds avec chaîne vide (ex: "" -> 0)
+      // Remplacer "" par un identifiant temporaire "IN" afin que sscanf puisse l’analyser comme un seul token
       char temp_line[256];
       strcpy(temp_line, line);
       char *empty_node = strstr(temp_line, "\"\"");
       if (empty_node && empty_node < (temp_line + (arrow_pos - line)))
       {
         empty_node[0] = 'I';
-        empty_node[1] = 'N'; // Turns "" into IN
+        empty_node[1] = 'N'; // Transforme "" en IN
       }
 
-      // Extract source and destination
+      // Extraire la source et la destination
       if (sscanf(temp_line, " %s -> %s", from_str, to_str) != 2)
         continue;
 
-      // Strip trailing brackets or semicolons from destination (e.g., "1[label=..." -> "1")
+      // Supprimer les crochets ou points-virgules à la fin de la destination
       char *bracket = strchr(to_str, '[');
       if (bracket)
         *bracket = '\0';
@@ -114,7 +114,7 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename)
       if (semi)
         *semi = '\0';
 
-      // 1. Detect Initial State ("IN" -> State)
+      // 1. Détection de l’état initial ("IN" -> État)
       if (strcmp(from_str, "IN") == 0)
       {
         int to_id = parse_etat_id(to_str);
@@ -126,7 +126,7 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename)
         continue;
       }
 
-      // 2. Detect Final State (State -> "fin*")
+      // 2. Détection de l’état final (État -> "fin*")
       if (strncmp(to_str, "fin", 3) == 0)
       {
         int from_id = parse_etat_id(from_str);
@@ -138,7 +138,7 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename)
         continue;
       }
 
-      // 3. Process Regular Transitions
+      // 3. Traitement des transitions normales
       int from_id = parse_etat_id(from_str);
       int to_id = parse_etat_id(to_str);
 
@@ -181,8 +181,8 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename)
       }
     }
   }
-
-  // Default to node 0 as initial if none is explicitly defined via "" -> X
+  // Par défaut, considérer le premier état (index 0) comme initial
+  // si aucun état initial n’est explicitement défini via "" -> X
   bool has_initial = false;
   for (int i = 0; i < automate->num_etats; i++)
   {
