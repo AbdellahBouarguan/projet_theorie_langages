@@ -43,7 +43,18 @@ bottom=25mm
     showtabs=false,
     tabsize=4
 }
-\lstset{style=mystyle}
+\lstset{style=mystyle,
+  literate=
+  {é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {ë}{{\"e}}1
+  {É}{{\'E}}1 {È}{{\`E}}1 {Ê}{{\^E}}1 {Ë}{{\"E}}1
+  {à}{{\`a}}1 {â}{{\^a}}1 {À}{{\`A}}1 {Â}{{\^A}}1
+  {î}{{\^i}}1 {ï}{{\"i}}1 {Î}{{\^I}}1 {Ï}{{\"I}}1
+  {ô}{{\^o}}1 {Ô}{{\^O}}1
+  {ù}{{\`u}}1 {û}{{\^u}}1 {ü}{{\"u}}1 {Ù}{{\`U}}1 {Û}{{\^U}}1 {Ü}{{\"U}}1
+  {ç}{{\c c}}1 {Ç}{{\c C}}1
+  {œ}{{\oe}}1 {Œ}{{\OE}}1
+  {’}{{'}}1
+}
 
 \title{
 \vspace{-2cm}
@@ -146,7 +157,7 @@ La réussite de cette première phase repose sur une répartition stricte et coo
 \item \textbf{Nizar} : Responsable de la traduction des automates finis vus en cours vers le format DOT à l'aide de l'outil en ligne \textbf{GraphvizOnline} (génération des fichiers \texttt{data/example1.dot} et \texttt{data/example2.dot}). Il a également pris en charge la modélisation mathématique en structures de données logicielles (conception du module \texttt{automate.h}) et a contribué au développement du moteur d'affichage (\texttt{display.c}).
 \item \textbf{Marouane} : En charge du développement du moteur d'analyse syntaxique permettant la lecture et l'extraction de données depuis les fichiers DOT (\texttt{parser.c}). Il a également contribué à la conception de la structure de données (\texttt{automate.h}) et a initialisé l'intégration de cet automate au sein du \textit{parser}.
 \item \textbf{Ilyas} : Développeur du module d'affichage console, s'assurant que la machinerie interne soit exposée lisiblement à l'écran (\texttt{display.c}). Il a aussi activement participé au développement du module d'analyse syntaxique (\texttt{parser.c}).
-\item \textbf{Nafissa} : Responsable de l'intégration globale des modules et conceptrice de l'interface utilisateur interactive (le menu principal dans \texttt{main.c}). Elle a aussi activement participée au développement du module d'analyse syntaxique (\texttt{parser.c}).
+\item \textbf{Nafissa} : Responsable de l'intégration globale des modules et conceptrice de l'interface utilisateur interactive (le menu principal dans \texttt{main.c}).
 \end{itemize}
 
 \section{Conception et Implémentation de la Phase 1}
