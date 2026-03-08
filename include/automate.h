@@ -9,18 +9,20 @@
 #define MAX_LABEL_LEN 64
 
 // Structure pour une transition
-typedef struct {
+typedef struct
+{
     int from_etat;
     int to_etat;
     char label[MAX_LABEL_LEN];
 } Transition;
 
 // Structure pour l'automate
-typedef struct {
+typedef struct
+{
     int num_etats;
-    int etats[MAX_ETATS];          // Liste des identifiants (ex: 0, 1, 2)
-    bool is_final[MAX_ETATS];       // Indique si l'état est final
-    bool is_initial[MAX_ETATS];     // Indique si l'état est initial
+    int etats[MAX_ETATS];       // Liste des identifiants (ex: 0, 1, 2)
+    bool is_final[MAX_ETATS];   // Indique si l'état est final
+    bool is_initial[MAX_ETATS]; // Indique si l'état est initial
 
     int num_transitions;
     Transition transitions[MAX_TRANSITIONS];
@@ -30,9 +32,12 @@ typedef struct {
 } Automaton;
 
 // Fonctionnalités principales (Phase 1)
-Automaton* create_automaton();
-void free_automaton(Automaton* automate);
-bool load_automaton_from_dot(Automaton* automate, const char* filename);
-void display_automaton(const Automaton* automate);
+Automaton *create_automaton();
+void free_automaton(Automaton *automate);
+bool load_automaton_from_dot(Automaton *automate, const char *filename);
+void display_automaton(const Automaton *automate);
+
+// Fonctionnalités supplémentaires (Phase 2)
+void generate_dot(Automaton *a, char *filename);
 
 #endif // AUTOMATE_H
