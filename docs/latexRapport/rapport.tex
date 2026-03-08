@@ -9,6 +9,11 @@
 \usepackage{listings}
 \usepackage{color}
 \usepackage{geometry}
+\usepackage{tocloft} % Pour personnaliser la table des matières
+
+% Configuration de tocloft pour espacer les chapitres/sections
+\setlength{\cftbeforesecskip}{1em} % Espacement avant chaque section
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}} % Points de suspension pour les sections
 
 % Configuration de la géométrie de la page
 \geometry{
@@ -59,28 +64,39 @@ bottom=25mm
 \title{
 \vspace{-2cm}
 \begin{center}
-\large Université Abdelmalek Essaadi \
-\large École Nationale des Sciences Appliquées - Tétouan
+\large Université Abdelmalek Essaadi \\
+\large École Nationale des Sciences Appliquées - Tétouan \\
+\vspace{0.5cm}
+\textbf{Cycle Ingénieur - Génie Informatique (GI1)} \\
+\textbf{Année Universitaire : 2025/2026}
 \end{center}
 \vspace{2cm}
 \HRule \
-\vspace{0.5cm}
 \textbf{\huge Projet Théorie des Langages} \
-\vspace{0.5cm}
-\Large Partie 1 : Lecture et affichage d'un automate \
 \HRule \
 \vspace{2cm}
 }
 
 \author{
-\textbf{Travail réalisé par l'équipe :} \\
-Bouarguan Abdellah \\  
-Ben Yacoub Nizar \\
-El Ghazouani Marouane \\
-Cherradi Ilyass \\
-El Younoussi Nafisa
+\begin{minipage}[t]{0.45\textwidth}
+\begin{flushleft} \large
+\emph{Réalisé par :}\\
+Bouarguan \textsc{Abdellah} \\  
+Ben Yacoub \textsc{Nizar} \\
+El Ghazouani \textsc{Marouane} \\
+Cherradi \textsc{Ilyass} \\
+El Younoussi \textsc{Nafisa}
+\end{flushleft}
+\end{minipage}
+~
+\begin{minipage}[t]{0.45\textwidth}
+\begin{flushright} \large
+\emph{Encadré par :} \\
+Pr. \textsc{Al Achhab Mohammed}
+\end{flushright}
+\end{minipage}
 }
-\date{Période de réalisation : 23 Février 2026 - 29 Février 2026}
+\date{Période de réalisation : 23 Février 2026 - 8 Mars 2026}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
@@ -90,11 +106,25 @@ El Younoussi Nafisa
 \thispagestyle{empty}
 \newpage
 
+\renewcommand{\contentsname}{\Huge Sommaire \vspace{1cm}}
 \tableofcontents
 \newpage
 
-\section{Introduction}
-Dans le cadre du module de Théorie des Langages et Compilation, l'objectif global de ce projet est de développer un programme permettant de remplir une partie de la table des symboles à partir soit d'une expression régulière, soit d'un automate fini décrit sous forme d'un fichier dot. Ce rapport détaille la "Partie 1: Lecture et affichage d'un automate", travail réalisé entre le 23 Février et le 29 Février 2026. Il retrace notre démarche chronologique, de la recherche théorique à l'implémentation finale des structures, en passant par la mise en place d'un environnement de travail collaboratif robuste.
+\section{Introduction Générale}
+Dans le cadre du module de Théorie des Langages et Compilation, l'objectif global de ce projet est de développer un programme permettant de remplir une partie de la table des symboles à partir soit d'une expression régulière, soit d'un automate fini décrit sous forme d'un fichier dot. Ce rapport retrace l'évolution de notre projet et se divise en plusieurs parties correspondantes aux différentes phases de développement.
+
+\newpage
+\begin{center}
+\vspace*{1cm}
+\HRule \\[0.5cm]
+\textbf{\huge Partie 1 : Lecture et affichage d'un automate} \\[0.5cm]
+\Large Période de réalisation : 23 Février 2026 - 29 Février 2026 \\
+\HRule \\
+\vspace*{1cm}
+\end{center}
+
+\section{Introduction de la Phase 1}
+Ce premier volet détaille la "Partie 1: Lecture et affichage d'un automate", première étape de notre travail. Il retrace notre démarche chronologique, de la recherche théorique à l'implémentation finale des structures de données, en passant par la mise en place d'un environnement de travail collaboratif robuste.
 
 \section{Recherche Préliminaire, Outils et Étude de Projets Existants}
 
@@ -157,13 +187,13 @@ La réussite de cette première phase repose sur une répartition stricte et coo
 \item \textbf{Nizar} : Responsable de la traduction des automates finis vus en cours vers le format DOT à l'aide de l'outil en ligne \textbf{GraphvizOnline} (génération des fichiers \texttt{data/example1.dot} et \texttt{data/example2.dot}). Il a également pris en charge la modélisation mathématique en structures de données logicielles (conception du module \texttt{automate.h}) et a contribué au développement du moteur d'affichage (\texttt{display.c}).
 \item \textbf{Marouane} : En charge du développement du moteur d'analyse syntaxique permettant la lecture et l'extraction de données depuis les fichiers DOT (\texttt{parser.c}). Il a également contribué à la conception de la structure de données (\texttt{automate.h}) et a initialisé l'intégration de cet automate au sein du \textit{parser}.
 \item \textbf{Ilyas} : Développeur du module d'affichage console, s'assurant que la machinerie interne soit exposée lisiblement à l'écran (\texttt{display.c}). Il a aussi activement participé au développement du module d'analyse syntaxique (\texttt{parser.c}).
-\item \textbf{Nafissa} : Responsable de l'intégration globale des modules et conceptrice de l'interface utilisateur interactive (le menu principal dans \texttt{main.c}).
+\item \textbf{Nafisa} : Responsable de l'intégration globale des modules et conceptrice de l'interface utilisateur interactive (le menu principal dans \texttt{main.c}).
 \end{itemize}
 
 \section{Conception et Implémentation de la Phase 1}
 
-\subsection{Structures de données (\texttt{automate.h})}
-Afin de répondre au premier objectif du cahier des charges demandant de proposer des structures de données permettant l'implémentation d'un automate fini, nous avons défini des structures en C capables de stocker les états, les transitions, l'alphabet, ainsi que la nature de chaque état (initial, final).
+\subsection{Structures de données (Question 1 : \texttt{automate.h})}
+Afin de répondre au premier objectif du cahier des charges de la \textbf{Question 1} demandant de proposer des structures de données permettant l'implémentation d'un automate fini, nous avons défini des structures en C capables de stocker les états, les transitions, l'alphabet, ainsi que la nature de chaque état (initial, final).
 
 La structure \texttt{Transition} modélise un arc entre deux états, étiqueté par un symbole de l'alphabet :
 \lstinputlisting[language=C, caption=Structure \texttt{Transition} (extraite de automate.h), linerange={11-16}]{../../include/automate.h}
@@ -171,8 +201,8 @@ La structure \texttt{Transition} modélise un arc entre deux états, étiqueté 
 La structure \texttt{Automaton} regroupe toutes les informations pertinentes pour définir formellement l'automate (états, transitions, alphabet, booléens pour la nature des états) :
 \lstinputlisting[language=C, caption=Structure \texttt{Automaton} (extraite de automate.h), linerange={6-9,18-30}]{../../include/automate.h}
 
-\subsection{Lecture et stockage (Parsing dans \texttt{parser.c})}
-Le deuxième objectif consistait à ajouter une fonction permettant de lire et stocker un automate fini à partir d'un fichier \texttt{.dot}. L'un des défis majeurs fut l'extraction fiable des informations pertinentes de ce format texte.
+\subsection{Lecture et stockage (Question 2 : Parsing dans \texttt{parser.c})}
+Pour la \textbf{Question 2}, l'objectif consistait à ajouter une fonction permettant de lire et stocker un automate fini à partir d'un fichier \texttt{.dot}. L'un des défis majeurs fut l'extraction fiable des informations pertinentes de ce format texte.
 
 Nous avons implémenté la fonction \texttt{load\_automaton\_from\_dot}, qui constitue le cœur de notre analyseur syntaxique (\textit{parser}). Son rôle est de parcourir le fichier texte et de traduire les descriptions graphiques en données exploitables en mémoire. Afin de la rendre robuste et de contourner les spécificités du format DOT, la fonction opère selon les étapes séquentielles suivantes :
 
@@ -199,8 +229,8 @@ Nous avons implémenté la fonction \texttt{load\_automaton\_from\_dot}, qui con
 \lstinputlisting[language=C, caption=Logique de la fonction \texttt{load\_automaton\_from\_dot} (fichier \texttt{parser.c}), linerange={72-202}]{../../src/parser.c}
 
 
-\subsection{Moteur d'affichage (\texttt{display.c})}
-Une fois l'automate chargé, le cahier des charges exigeait d'ajouter une fonction permettant d'affichage les informations d'un automate passé en paramètre la liste des états, la liste des transitions, l'alphabet, les états finaux, les états initiaux. Ainsi, la fonction \texttt{display\_automaton} a été développée.
+\subsection{Moteur d'affichage (Question 3 : \texttt{display.c})}
+Une fois l'automate chargé, la \textbf{Question 3} du cahier des charges exigeait d'ajouter une fonction permettant d'affichage les informations d'un automate passé en paramètre la liste des états, la liste des transitions, l'alphabet, les états finaux, les états initiaux. Ainsi, la fonction \texttt{display\_automaton} a été développée.
 
 Son rôle est de parcourir la structure en mémoire et d'afficher de façon lisible dans la console :
 \begin{itemize}
@@ -210,8 +240,8 @@ Son rôle est de parcourir la structure en mémoire et d'afficher de façon lisi
 \item La liste complète des transitions formatée (ex: $\delta(q_0, a) = q_1$).
 \end{itemize}
 
-\subsection{Interface interactive (\texttt{main.c})}
-Pour orchestrer ces différentes fonctionnalités, nous devions ajouter un menu à notre programme. Ce menu a été intégré au fichier \texttt{main.c} et propose les options suivantes de manière cyclique :
+\subsection{Interface interactive (Question 4 : \texttt{main.c})}
+Pour répondre à la \textbf{Question 4} et orchestrer ces différentes fonctionnalités, nous devions ajouter un menu à notre programme. Ce menu a été intégré au fichier \texttt{main.c} et propose les options suivantes de manière cyclique :
 \begin{enumerate}
 \item \textbf{Charger un automate :} L'utilisateur saisit le chemin du fichier \texttt{.dot}.
 \item \textbf{Afficher les informations :} Invoque la fonction \texttt{display\_automaton}.
@@ -229,6 +259,70 @@ Le développement de cette première itération n'a pas été sans obstacles. No
 \end{enumerate}
 
 \section{Conclusion de la Phase 1}
-En conclusion pour cette première semaine de développement, les bases techniques et organisationnelles du projet ont été solidement établies. La modélisation mathématique de l'automate fini a été transposée efficacement en structures C opérationnelles. Le système est désormais capable de dialoguer avec des fichiers standards (DOT) et de restituer l'information extraite, validant ainsi la totalité de la Partie 1 et ouvrant la voie à des manipulations plus complexes (opérations sur les automates, déterminisation, minimisation, construction de la table des symboles).
+En conclusion pour cette première semaine de développement, les bases techniques et organisationnelles du projet ont été solidement établies. La modélisation mathématique de l'automate fini a été transposée efficacement en structures C opérationnelles. Le système est désormais capable de dialoguer avec des fichiers standards (DOT) et de restituer l'information extraite, validant ainsi la totalité de la Partie 1 et ouvrant la voie à des manipulations plus complexes.
+
+\newpage
+\begin{center}
+\vspace*{1cm}
+\HRule \\[0.5cm]
+\textbf{\huge Partie 2 : Manipulation d'un automate} \\[0.5cm]
+\Large Période de réalisation : 2 Mars 2026 - 8 Mars 2026 \\
+\HRule \\
+\vspace*{1cm}
+\end{center}
+
+\section{Introduction de la Phase 2}
+Cette deuxième partie du projet porte sur la manipulation avancée des automates finis en validant les acquis théoriques du cours. Nous avons étendu notre programme pour inclure la génération de fichiers au format DOT, l'analyse des propriétés du graphe (transitions entrantes et sortantes), et l'évaluation de la reconnaissance de mots (simulation d'AFN). Ce travail a été intégré au menu interactif principal du programme.
+
+\section{Répartition du Travail}
+Tout comme la première phase, la répartition des tâches a été essentielle pour la réussite de cette deuxième étape :
+\begin{itemize}
+\item \textbf{Nizar} et \textbf{Nafisa} : Ont effectué une recherche initiale exhaustive sur les problématiques soulevées par les \textbf{Questions 5 à 9} afin de familiariser l'équipe avec les objectifs à atteindre. Ils se sont chargés d'expliquer les notions théoriques issues du cours du professeur et d'identifier la démarche algorithmique requise pour le traitement de chaque question.
+\item \textbf{Ilyas} : S'est chargé de la réalisation technique de la \textbf{Question 5}, concevant et implémentant l'outil interactif de génération de fichiers DOT au sein du module \texttt{generate.c}.
+\item \textbf{Abdellah} et \textbf{Marouane} : Ont collaboré sur l'implémentation algorithmique de la manipulation avancée des automates et de la simulation de reconnaissance de mots, en couvrant l'intégralité du développement pour les \textbf{Questions 6 à 9}.
+\end{itemize}
+
+\section{Conception et Implémentation}
+
+\subsection{Génération d'un fichier DOT (Question 5)}
+Pour répondre à la \textbf{Question 5}, nous avons implémenté la fonction \texttt{generate\_dot} dans le fichier \texttt{generate.c}. Cette fonction permet de créer manuellement un automate de manière interactive depuis la console et de le sauvegarder dans un fichier \texttt{.dot}. Elle s'assure de respecter les conventions de nommage et notations du cours. Notamment, elle utilise un nœud invisible \texttt{""} pour pointer vers les états initiaux, et crée des arcs vers des états \texttt{finalX} pour représenter graphiquement les états d'acceptation.
+\lstinputlisting[language=C, caption=Extrait de la génération DOT (fichier \texttt{generate.c}), linerange={25-35}]{../../src/generate.c}
+
+\subsection{Statistiques sur les transitions (Question 6)}
+La \textbf{Question 6} demandait d'identifier l'état possédant le plus grand nombre de transitions entrantes et sortantes. Dans \texttt{manipulation.c}, la fonction \texttt{afficher\_etat\_max\_transitions} calcule ces degrés pour chaque nœud en parcourant le tableau global des transitions de l'automate. Des compteurs locaux sont maintenus pour chaque état (\texttt{in\_count} et \texttt{out\_count}). Le programme détermine ensuite le maximum global et l'affiche à l'utilisateur.
+
+\subsection{Recherche d'états par étiquette (Question 7)}
+Pour la \textbf{Question 7}, l'objectif était d'afficher les états ayant au moins une transition sortante étiquetée par un symbole précis (passé en paramètre).\\
+La fonction \texttt{afficher\_etats\_transition\_label} parcourt les transitions de l'automate et compare l'étiquette demandée avec celle de chaque transition via \texttt{strcmp}. Les états correspondants sont extraits et affichés sans doublons, grâce à un tableau de marquage booléen \texttt{printed}.
+
+\subsection{Test de reconnaissance d'un mot (Question 8)}
+La vérification de mots (\textbf{Question 8}) constitue une partie essentielle. Comme un automate peut être non déterministe (AFN) et comporter des transitions $\epsilon$ (epsilon), la simple itération linéaire sur le mot ne suffit pas. Nous avons implémenté un algorithme de recherche en profondeur récursif (backtracking) dans la fonction interne \texttt{match\_recursive}. 
+\begin{itemize}
+    \item L'algorithme avance dans le graphe de l'automate en consommant les lettres du mot.
+    \item Les transitions $\epsilon$ sont franchies sans consommer de lettre. Pour éviter les boucles infinies de transitions $\epsilon$, nous maintenons un tableau \texttt{visited\_eps} des états déjà visités lors de l'évaluation du même caractère.
+    \item Si toute la chaîne est consommée et que nous nous trouvons dans un état final (ou qu'un état final est atteignable via des transitions $\epsilon$), le mot est accepté.
+\end{itemize}
+La fonction publique \texttt{tester\_mot} initialise cette recherche à partir de tous les états initiaux. L'interaction avec l'utilisateur (saisie depuis l'invite de commande) est gérée par la méthode \texttt{lire\_et\_tester\_mot}.
+
+\subsection{Traitement par lots depuis un fichier .txt (Question 9)}
+Enfin, pour la \textbf{Question 9}, la fonction \texttt{filtrer\_mots\_fichier} permet de vérifier automatiquement une série de mots lus depuis un fichier texte (les mots étant séparés par des espaces ou retours à la ligne). Pour chaque mot extrait par \texttt{fscanf}, la fonction invoque \texttt{tester\_mot}. Si l'automate reconnaît le mot, ce dernier est écrit dans un fichier de sortie \texttt{MotsAccepter.txt}. À l'issue du traitement, le programme affiche un résumé statistique du nombre total de mots lus et du nombre de mots acceptés.
+
+\section{Difficultés Rencontrées et Solutions}
+Lors de cette deuxième phase de développement, l'équipe a fait face à de nouveaux défis techniques, principalement liés à la manipulation avancée des graphes :
+
+\begin{enumerate}
+\item \textbf{Mise en œuvre du Backtracking avec les transitions $\epsilon$} : 
+L'une des plus grandes difficultés a été la modélisation mathématique du non-déterminisme, en particulier les cycles infinis créés par les transitions epsilon ($\epsilon$).
+\textit{Solution :} Nous avons introduit un tableau booléen \texttt{visited\_eps} dans notre algorithme récursif (\texttt{match\_recursive}) pour mémoriser les états déjà traversés lors de l'évaluation d'une lettre, cassant ainsi les boucles infinies.
+\item \textbf{Gestion des correspondances exactes de mots} : 
+Lors de la vérification, il était parfois complexe de distinguer la fin d'un mot valide d'une correspondance partielle.
+\textit{Solution :} La condition d'acceptation a été strictement définie : l'algorithme doit consommer l'intégralité de la chaîne de caractères (\texttt{pos == strlen(mot)}) ET se trouver dans un état final (ou pouvoir en atteindre un via epsilon).
+\item \textbf{Création manuelle d'automates via la console} : 
+La génération d'un fichier DOT valide (\textbf{Question 5}) via l'interface console introduisait des risques d'erreurs de saisie utilisateur risquant de corrompre le fichier généré.
+\textit{Solution :} Le flux d'interaction de \texttt{generate.c} a été conçu de manière séquentielle et stricte, forçant d'abord la définition de l'architecture nodale (états normaux, initiaux, finaux) avant de lier les relations (numombre de transitions, états de départ/arrivée et labels).
+\end{enumerate}
+
+\section{Conclusion de la Phase 2}
+Les objectifs de la Partie 2 ont été atteints avec succès. Le système modélise fidèlement le comportement d'un AFN grâce à son algorithme de parcours incluant les $\epsilon$-transitions, permettant ainsi de manipuler pleinement l'automate et de tester la reconnaissance de mots. Couplé aux fonctionnalités de parsing de la Phase 1, le programme final est complètement opérationnel et offre une gestion intégrale des automates finis.
 
 \end{document}
