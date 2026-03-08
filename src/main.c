@@ -17,7 +17,7 @@ int main()
         printf("\nMenu:\n");
         printf("1. Charger un automate a partir d'un fichier .dot\n");
         printf("2. Afficher l'automate\n");
-        printf("3. Generer un fichier .dot a partir de l'automate actuel\n");
+        printf("3. Generer un fichier .dot\n");
         printf("4. Afficher l'etat avec le plus de transitions entrantes/sortantes \n");
         printf("5. Afficher les etats avec une transition sortante d'une etiquette donnee \n");
         printf("6. Tester un mot saisi au clavier \n");
