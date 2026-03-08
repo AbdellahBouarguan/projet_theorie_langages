@@ -31,13 +31,18 @@ typedef struct
     char alphabet[MAX_ALPHABET][MAX_LABEL_LEN];
 } Automaton;
 
-// Fonctionnalités principales (Phase 1)
+// Fonctionnalités partie 1
 Automaton *create_automaton();
 void free_automaton(Automaton *automate);
 bool load_automaton_from_dot(Automaton *automate, const char *filename);
 void display_automaton(const Automaton *automate);
 
-// Fonctionnalités supplémentaires (Phase 2)
+// Fonctionnalités partie 2
 void generate_dot(Automaton *a, char *filename);
+void afficher_etat_max_transitions(const Automaton *automate);
+void afficher_etats_transition_label(const Automaton *automate, const char *label);
+bool tester_mot(const Automaton *automate, const char *mot);
+void lire_et_tester_mot(const Automaton *automate);
+void filtrer_mots_fichier(const Automaton *automate, const char *fichier_entree);
 
 #endif // AUTOMATE_H

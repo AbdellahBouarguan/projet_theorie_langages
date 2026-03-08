@@ -10,7 +10,7 @@ int main()
     Automaton *automate = create_automaton();
     bool loaded = false;
 
-    printf("=== Projet Theorie des Langages - Phase 1 ===\n");
+    printf("=== Projet Theorie des Langages ===\n");
 
     while (1)
     {
@@ -18,7 +18,11 @@ int main()
         printf("1. Charger un automate a partir d'un fichier .dot\n");
         printf("2. Afficher l'automate\n");
         printf("3. Generer un fichier .dot a partir de l'automate actuel\n");
-        printf("4. Quitter\n");
+        printf("4. Afficher l'etat avec le plus de transitions entrantes/sortantes \n");
+        printf("5. Afficher les etats avec une transition sortante d'une etiquette donnee \n");
+        printf("6. Tester un mot saisi au clavier \n");
+        printf("7. Analyser un fichier .txt et generer MotsAccepter.txt\n");
+        printf("8. Quitter\n");
         printf("Votre choix : ");
 
         if (scanf("%d", &choix) != 1)
@@ -63,6 +67,24 @@ int main()
             printf("Automate genere dans le fichier '%s'.\n", filename);
             break;
         case 4:
+            afficher_etat_max_transitions(automate);
+            break;
+        case 5:
+            printf("Entrez l'etiquette de la transition sortante : ");
+            char label[MAX_LABEL_LEN];
+            scanf(" %63[^\n\r]", label);
+            afficher_etats_transition_label(automate, label);
+            break;
+        case 6:
+            lire_et_tester_mot(automate);
+            break;
+        case 7:
+            printf("Entrez le nom du fichier d'entree (ex: mots_a_tester.txt) : ");
+            char input_file[256];
+            scanf(" %255[^\n\r]", input_file);
+            filtrer_mots_fichier(automate, input_file);
+            break;
+        case 8:
             printf("Au revoir !\n");
             free_automaton(automate);
             return 0;
