@@ -96,7 +96,7 @@ Pr. \textsc{Al Achhab Mohammed}
 \end{flushright}
 \end{minipage}
 }
-\date{Période de réalisation : 23 Février 2026 - 8 Mars 2026}
+\date{Période de réalisation : 23 Février 2026 - 23 Mars 2026}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
@@ -330,41 +330,34 @@ Les objectifs de la Partie 2 ont été atteints avec succès. Le système modél
 \vspace*{1cm}
 \HRule \\[0.5cm]
 \textbf{\huge Partie 3 : Opérations sur les automates} \\[0.5cm]
-\Large Période de réalisation : 23 Mars 2026 - 28 Mars 2026 \\
+\Large Période de réalisation : 9 Mars 2026 - 15 Mars 2026 \\
 \HRule \\
 \vspace*{1cm}
 \end{center}
 
-\section{Introduction de la Phase 3}
-Cette troisième phase marque le point culminant de notre moteur d'automates. L'enjeu est de passer de simples automates statiques à des structures dynamiques capables d'être combinées et transformées. Nous avons introduit les opérations de base (concaténation, union) et l'algorithme de \textbf{Thompson} pour convertir des expressions régulières en NFAs. Un point critique de cette phase est la gestion des transitions $\epsilon$ (epsilon), indispensables pour l'algorithme de Thompson, mais qui nécessitent une suppression rigoureuse (\textbf{fermeture-epsilon}) pour simplifier l'analyse et l'affichage final.
+\section{Conception et Implémentation de la Phase 3}
 
-\section{Détails Algorithmiques}
+Cette phase se concentre sur les opérations algébriques et les transformations structurelles des automates, en s'appuyant sur les bases de données déjà établies.
 
-\subsection{Réindexation des états (méthode d'Offset)}
-Lors de la concaténation ou de l'union de deux automates $A$ et $B$, un problème majeur survient : la collision des identifiants (IDs) d'états. Si $A$ possède un état $0$ et $B$ également, la fusion directe corrompt la logique du graphe.
-\textit{Solution :} Nous avons implémenté une fonction utilitaire \texttt{copy\_and\_offset\_states}. Avant d'ajouter $B$ au nouvel automate, nous calculons le plus grand ID présent dans $A$ et l'utilisons comme décalage (\textit{offset}) pour tous les IDs de $B$. Cette approche garantit une séparation stricte des espaces de noms d'états dans l'automate résultant.
+\subsection{Concaténation de deux automates (Question 10)}
+La \textbf{Question 10} demandait d'ajouter une fonction permettant de retourner la concaténation de deux automates passés en paramètres.
+Nous avons implémenté la fonction \texttt{concatener\_automates}. La logique consiste à :
+\begin{itemize}
+    \item Fusionner les ensembles d'états des deux automates en utilisant un décalage (\textit{offset}) pour éviter les collisions d'identifiants.
+    \item Relier chaque état final du premier automate aux états initiaux du second par des transitions $\epsilon$ (epsilon).
+    \item Définir les états finaux du second automate comme les seuls états finaux de l'automate résultant.
+\end{itemize}
 
-\subsection{Gestion du non-déterminisme et transitions $\epsilon$}
-Deux approches ont été explorées pour gérer les transitions vides ($\epsilon$) :
-\begin{enumerate}
-    \item \textbf{Backtracking (Test de mots)} : Lors de la simulation, l'algorithme explore récursivement tous les chemins possibles dès qu'il rencontre une transition $\epsilon$, sans consommer de caractère. Bien qu'efficace pour tester ponctuellement, cette méthode devient coûteuse sur de grands graphes.
-    \item \textbf{Suppression d'Epsilon ($\epsilon$-closure)} : Pour "nettoyer" l'automate, nous calculons la fermeture transitive des transitions $\epsilon$ via l'algorithme de **Floyd-Warshall**. Pour chaque chemin $q_i \xrightarrow{\epsilon^*} q_j \xrightarrow{a} q_k \xrightarrow{\epsilon^*} q_l$, nous créons une transition directe $q_i \xrightarrow{a} q_l$. Cette transformation simplifie radicalement l'automate en le ramenant à un AFN sans transitions $\epsilon$.
-\end{enumerate}
-
-\section{Code Source Significatif}
-
-\subsection{Concaténation d'automates}
-La concaténation relie chaque état final de l'automate $A$ aux états initiaux de $B$ par des transitions $\epsilon$.
 \begin{lstlisting}[language=C, caption=Logique de concaténation (operations.c)]
 Automaton *concatener_automates(const Automaton *a1, const Automaton *a2) {
   Automaton *res = create_automaton();
-  copy_and_offset_states(res, a1, 0); // Copie de A
+  copy_and_offset_states(res, a1, 0); 
   int offset = get_max_id(a1) + 1;
-  copy_and_offset_states(res, a2, offset); // Copie de B decalee
+  copy_and_offset_states(res, a2, offset); 
 
   for (int i = 0; i < a1->num_etats; i++) {
     if (a1->is_final[i]) {
-      res->is_final[i] = false; // Transition vers B
+      res->is_final[i] = false; 
       for (int j = 0; j < a2->num_etats; j++) {
         if (a2->is_initial[j]) {
           add_transition(res, res->etats[i], res->etats[a1->num_etats+j], "epsilon");
@@ -376,33 +369,47 @@ Automaton *concatener_automates(const Automaton *a1, const Automaton *a2) {
 }
 \end{lstlisting}
 
-\subsection{Suppression physique des Epsilon}
-Cette fonction utilise une matrice d'adjacence booléenne pour calculer la fermeture.
-\begin{lstlisting}[language=C, caption=Suppression des transitions epsilon (fermeture transitive)]
-void supprimer_epsilon_transitions(Automaton *a) {
-  bool closure[MAX_ETATS][MAX_ETATS];
-  // ... Calcul de la fermeture via Floyd-Warshall ...
-  for (int k = 0; k < a->num_etats; k++)
-    for (int i = 0; i < a->num_etats; i++)
-      for (int j = 0; j < a->num_etats; j++)
-        if (closure[i][k] && closure[k][j]) closure[i][j] = true;
+\subsection{Union de deux automates (Question 11)}
+Pour répondre à la \textbf{Question 11}, la fonction \texttt{union\_automates} crée un nouvel automate qui accepte l'union des langages des deux automates sources.
+La construction repose sur l'ajout d'un nouvel état initial "super-source" relié par des transitions $\epsilon$ aux anciens états initiaux des deux automates. Un état final commun est également ajouté pour centraliser l'acceptation.
 
-  // Heritage des etats finaux
-  for (int i = 0; i < a->num_etats; i++)
-    for (int j = 0; j < a->num_etats; j++)
-      if (closure[i][j] && a->is_final[j]) a->is_final[i] = true;
+\subsection{Construction à partir d'une expression régulière (Question 12)}
+La \textbf{Question 12} concernait la construction d'un automate à partir d'une expression régulière.
+Nous avons implémenté l'algorithme de \textbf{Thompson} via la fonction \texttt{regex\_to\_nfa}. Cet algorithme transforme récursivement les opérateurs de l'expression (union $|$, concaténation, et étoile de Kleene $*$) en fragments d'automates reliés par des transitions $\epsilon$. L'analyse syntaxique s'appuie sur l'algorithme \textit{Shunting-Yard} pour gérer les priorités d'opérateurs.
 
-  // Generation des transitions directes sans epsilon
-  // ... (Code de generation de new_transitions) ...
-  a->num_transitions = new_count;
-}
-\end{lstlisting}
+\subsection{Suppression des $\epsilon$-transitions (Question 13)}
+Enfin, pour la \textbf{Question 13}, la fonction \texttt{supprimer\_epsilon\_transitions} transforme un AFN-$\epsilon$ en un AFN classique.
+L'algorithme utilise le concept de \textbf{fermeture-epsilon} ($\epsilon$-closure). Pour chaque état, nous calculons l'ensemble des états atteignables via $\epsilon$ uniquement par l'algorithme de Floyd-Warshall. Pour chaque transition $q_i \xrightarrow{a} q_j$, si $q_j$ peut atteindre un état $q_k$ via une ou plusieurs transitions $\epsilon$, une nouvelle transition directe $q_i \xrightarrow{a} q_k$ est créée, puis les $\epsilon$ physiques sont supprimés.
+
+\section{Représentations Graphiques des Tests}
+
+Pour valider nos implémentations, nous avons généré des fichiers \texttt{.dot} à partir des résultats de nos opérations.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../data/concat_result.png}
+    \caption{Représentation graphique de la concaténation (testé sur a.dot et b.dot)}
+    \label{fig:concat}
+\end{figure}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../data/sup.png}
+    \caption{Automate après suppression des transitions epsilon}
+    \label{fig:epsilon}
+\end{figure}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../data/reg_res.png}
+    \caption{Automate généré à partir d'une expression régulière ( Thompson )}
+    \label{fig:regex}
+\end{figure}
+\clearpage
 
 \section{Organisation et Répartition du Travail}
 Pour cette phase finale, l'équipe a adopté une structure de développement en couches :
 \begin{itemize}
-    \item \textbf{Abdellah} : Architecture des opérations complexes et implémentation de l'algorithme de Thompson (regex vers NFA) et Shunting-Yard.
-    \item \textbf{Nizar} : Conception de la logique de réindexation (\textit{offsetting}) et des outils de fusion.
+    \item \textbf{Abdellah} : Architecture des opérations complexes et implémentation de l'algorithme de Thompson (regex vers NFA) .
+    \item \textbf{Nizar} : Conception de la logique de réindexation (\textit{offsetting}) et des outils de fusion  et implémentation de l'algorithme Shunting-Yard.
     \item \textbf{Marouane} et \textbf{Ilyass} : Développement et optimisation du module de fermeture-epsilon et de la structure de backtracking.
     \item \textbf{Nafisa} : Maintenance globale, tests d'intégration et mise à jour de l'interface utilisateur pour inclure les nouvelles opérations.
 \end{itemize}
