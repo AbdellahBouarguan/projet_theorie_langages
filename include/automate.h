@@ -9,26 +9,24 @@
 #define MAX_LABEL_LEN 64
 
 // Structure pour une transition
-typedef struct
-{
-    int from_etat;
-    int to_etat;
-    char label[MAX_LABEL_LEN];
+typedef struct {
+  int from_etat;
+  int to_etat;
+  char label[MAX_LABEL_LEN];
 } Transition;
 
 // Structure pour l'automate
-typedef struct
-{
-    int num_etats;
-    int etats[MAX_ETATS];       // Liste des identifiants (ex: 0, 1, 2)
-    bool is_final[MAX_ETATS];   // Indique si l'état est final
-    bool is_initial[MAX_ETATS]; // Indique si l'état est initial
+typedef struct {
+  int num_etats;
+  int etats[MAX_ETATS];       // Liste des identifiants (ex: 0, 1, 2)
+  bool is_final[MAX_ETATS];   // Indique si l'état est final
+  bool is_initial[MAX_ETATS]; // Indique si l'état est initial
 
-    int num_transitions;
-    Transition transitions[MAX_TRANSITIONS];
+  int num_transitions;
+  Transition transitions[MAX_TRANSITIONS];
 
-    int num_alphabet;
-    char alphabet[MAX_ALPHABET][MAX_LABEL_LEN];
+  int num_alphabet;
+  char alphabet[MAX_ALPHABET][MAX_LABEL_LEN];
 } Automaton;
 
 // Fonctionnalités partie 1
@@ -39,10 +37,19 @@ void display_automaton(const Automaton *automate);
 
 // Fonctionnalités partie 2
 void generate_dot(Automaton *a, char *filename);
+void generate_dot_interactive(Automaton *a, char *filename);
 void afficher_etat_max_transitions(const Automaton *automate);
-void afficher_etats_transition_label(const Automaton *automate, const char *label);
+void afficher_etats_transition_label(const Automaton *automate,
+                                     const char *label);
 bool tester_mot(const Automaton *automate, const char *mot);
 void lire_et_tester_mot(const Automaton *automate);
-void filtrer_mots_fichier(const Automaton *automate, const char *fichier_entree);
+void filtrer_mots_fichier(const Automaton *automate,
+                          const char *fichier_entree);
+
+// Fonctionnalités partie 3
+Automaton *concatener_automates(const Automaton *a1, const Automaton *a2);
+Automaton *union_automates(const Automaton *a1, const Automaton *a2);
+Automaton *regex_to_nfa(const char *regex);
+void supprimer_epsilon_transitions(Automaton *a);
 
 #endif // AUTOMATE_H

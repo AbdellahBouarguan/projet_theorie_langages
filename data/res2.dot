@@ -1,0 +1,20 @@
+digraph Automaton {
+rankdir=LR;
+node [shape = circle];
+0;
+1;
+2;
+3;
+4;
+5;
+"" [shape=point];
+"" -> 0;
+1 -> 2 [label="a"];
+3 -> 4 [label="b"];
+0 -> 1 [label="epsilon"];
+0 -> 3 [label="epsilon"];
+2 -> 5 [label="epsilon"];
+4 -> 5 [label="epsilon"];
+node [shape=point];
+5 -> final5;
+}
