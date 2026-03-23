@@ -45,4 +45,10 @@ bool tester_mot(const Automaton *automate, const char *mot);
 void lire_et_tester_mot(const Automaton *automate);
 void filtrer_mots_fichier(const Automaton *automate, const char *fichier_entree);
 
+// Fonctionnalités partie 3
+Automaton *concatener_automates(const Automaton *a1, const Automaton *a2);
+Automaton *union_automates(const Automaton *a1, const Automaton *a2);
+Automaton *regex_to_nfa(const char *regex);
+void supprimer_epsilon_transitions(Automaton *a);
+
 #endif // AUTOMATE_H
