@@ -368,79 +368,75 @@ static int get_state_index(const Automaton *a, int id) {
   return -1;
 }
 
-void supprimer_epsilon_transitions(Automaton *a) {
-  bool closure[MAX_ETATS][MAX_ETATS];
-  memset(closure, 0, sizeof(closure));
+static void get_epsilon_closure(const Automaton *a, int state_idx,
+                                bool closure[MAX_ETATS]) {
+  memset(closure, 0, MAX_ETATS * sizeof(bool));
+  int stack[MAX_ETATS];
+  int top = -1;
 
-  for (int i = 0; i < a->num_etats; i++) {
-    closure[i][i] = true;
-  }
+  closure[state_idx] = true;
+  stack[++top] = state_idx;
 
-  for (int t = 0; t < a->num_transitions; t++) {
-    if (strcmp(a->transitions[t].label, "epsilon") == 0) {
-      int u = get_state_index(a, a->transitions[t].from_etat);
-      int v = get_state_index(a, a->transitions[t].to_etat);
-      if (u != -1 && v != -1) {
-        closure[u][v] = true;
-      }
-    }
-  }
-
-  for (int k = 0; k < a->num_etats; k++) {
-    for (int i = 0; i < a->num_etats; i++) {
-      for (int j = 0; j < a->num_etats; j++) {
-        if (closure[i][k] && closure[k][j]) {
-          closure[i][j] = true;
+  while (top >= 0) {
+    int u = stack[top--];
+    for (int i = 0; i < a->num_transitions; i++) {
+      if (strcmp(a->transitions[i].label, "epsilon") == 0 &&
+          a->transitions[i].from_etat == a->etats[u]) {
+        int v = get_state_index(a, a->transitions[i].to_etat);
+        if (v != -1 && !closure[v]) {
+          closure[v] = true;
+          stack[++top] = v;
         }
       }
     }
   }
+}
 
-  for (int i = 0; i < a->num_etats; i++) {
-    for (int j = 0; j < a->num_etats; j++) {
-      if (closure[i][j] && a->is_final[j]) {
-        a->is_final[i] = true;
-      }
-    }
-  }
-
+void supprimer_epsilon_transitions(Automaton *a) {
   Transition new_transitions[MAX_TRANSITIONS];
   int new_count = 0;
+  bool new_is_final[MAX_ETATS];
+  memcpy(new_is_final, a->is_final, sizeof(new_is_final));
 
   for (int i = 0; i < a->num_etats; i++) {
+    bool closure[MAX_ETATS];
+    get_epsilon_closure(a, i, closure);
+
+    // Mise à jour des états finaux
     for (int j = 0; j < a->num_etats; j++) {
-      if (closure[i][j]) {
+      if (closure[j] && a->is_final[j]) {
+        new_is_final[i] = true;
+      }
+    }
+
+    // Duplication des transitions
+    for (int j = 0; j < a->num_etats; j++) {
+      if (closure[j]) {
         for (int t = 0; t < a->num_transitions; t++) {
           if (strcmp(a->transitions[t].label, "epsilon") != 0 &&
               a->transitions[t].from_etat == a->etats[j]) {
 
-            int k = get_state_index(a, a->transitions[t].to_etat);
-            if (k != -1) {
-              for (int l = 0; l < a->num_etats; l++) {
-                if (closure[k][l]) {
-                  bool exists = false;
-                  for (int n = 0; n < new_count; n++) {
-                    if (new_transitions[n].from_etat == a->etats[i] &&
-                        new_transitions[n].to_etat == a->etats[l] &&
-                        strcmp(new_transitions[n].label,
-                               a->transitions[t].label) == 0) {
-                      exists = true;
-                      break;
-                    }
-                  }
-                  if (!exists) {
-                    if (new_count < MAX_TRANSITIONS) {
-                      new_transitions[new_count].from_etat = a->etats[i];
-                      new_transitions[new_count].to_etat = a->etats[l];
-                      strcpy(new_transitions[new_count].label,
-                             a->transitions[t].label);
-                      new_count++;
-                    } else {
-                      printf("Erreur : Limite de MAX_TRANSITIONS atteinte.\n");
-                      return;
-                    }
-                  }
-                }
+            // Ajouter transition de a->etats[i] vers a->transitions[t].to_etat
+            bool exists = false;
+            for (int n = 0; n < new_count; n++) {
+              if (new_transitions[n].from_etat == a->etats[i] &&
+                  new_transitions[n].to_etat == a->transitions[t].to_etat &&
+                  strcmp(new_transitions[n].label, a->transitions[t].label) ==
+                      0) {
+                exists = true;
+                break;
+              }
+            }
+            if (!exists) {
+              if (new_count < MAX_TRANSITIONS) {
+                new_transitions[new_count].from_etat = a->etats[i];
+                new_transitions[new_count].to_etat = a->transitions[t].to_etat;
+                strcpy(new_transitions[new_count].label,
+                       a->transitions[t].label);
+                new_count++;
+              } else {
+                printf("Erreur : Limite de MAX_TRANSITIONS atteinte.\n");
+                return;
               }
             }
           }
@@ -449,8 +445,28 @@ void supprimer_epsilon_transitions(Automaton *a) {
     }
   }
 
+  // Mettre à jour l'automate
   a->num_transitions = new_count;
   for (int i = 0; i < new_count; i++) {
     a->transitions[i] = new_transitions[i];
+  }
+  for (int i = 0; i < a->num_etats; i++) {
+    a->is_final[i] = new_is_final[i];
+  }
+
+  // Nettoyage de l'alphabet (optionnel mais recommandé pour la clarté)
+  // On recalcule l'alphabet à partir des nouvelles transitions
+  a->num_alphabet = 0;
+  for (int i = 0; i < a->num_transitions; i++) {
+    bool exists = false;
+    for (int j = 0; j < a->num_alphabet; j++) {
+      if (strcmp(a->alphabet[j], a->transitions[i].label) == 0) {
+        exists = true;
+        break;
+      }
+    }
+    if (!exists && a->num_alphabet < MAX_ALPHABET) {
+      strcpy(a->alphabet[a->num_alphabet++], a->transitions[i].label);
+    }
   }
 }
