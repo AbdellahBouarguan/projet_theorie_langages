@@ -51,5 +51,9 @@ Automaton *concatener_automates(const Automaton *a1, const Automaton *a2);
 Automaton *union_automates(const Automaton *a1, const Automaton *a2);
 Automaton *regex_to_nfa(const char *regex);
 void supprimer_epsilon_transitions(Automaton *a);
-
+char *automaton_to_regex(Automaton *a);
+Automaton *produit_automates(const Automaton *a1, const Automaton *a2);
+Automaton *determiniser(const Automaton *nfa);
+Automaton *transposer_automaton(const Automaton *a);
+Automaton *minimiser_brzozowski(const Automaton *a);
 #endif // AUTOMATE_H
