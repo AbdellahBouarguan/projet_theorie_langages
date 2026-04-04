@@ -56,4 +56,7 @@ Automaton *produit_automates(const Automaton *a1, const Automaton *a2);
 Automaton *determiniser(const Automaton *nfa);
 Automaton *transposer_automaton(const Automaton *a);
 Automaton *minimiser_brzozowski(const Automaton *a);
+void generer_dot_pipeline(const Automaton *original, const char *nom_base);
+bool mot_accepte(const Automaton *a, const char *mot);
+void afficher_mots_acceptes(const Automaton *minimal, const char *fichier_txt);
 #endif // AUTOMATE_H

@@ -29,7 +29,9 @@ int main() {
         printf("14. Produit de deux automates (.dot)\n");
         printf("15. Determiniser l'automate\n");
         printf("16. Minimiser l'automate (Brzozowski)\n");
-        printf("17. Quitter\n");
+        printf("17. Analyser un fichier .dot \n");
+        printf("18. Generer les fichiers .txt afficher liste des mots acceptes\n");
+        printf("19. Quitter\n");
         printf("Votre choix : ");
 
         if (scanf("%d", &choix) != 1) {
@@ -270,7 +272,55 @@ int main() {
         }
     }
     break;
-            case 17:
+    case 17:
+    if (!loaded) {
+        printf("Veuillez d'abord charger un automate (Option 1).\n");
+        break;
+    }
+
+    char nom_base[256];
+    printf("Entrez le nom de base des fichiers (ex: mon_automate) : ");
+    if (scanf(" %255[^\n\r]", nom_base) == 1) {
+        printf("\nGeneration des fichiers .dot...\n");
+        generer_dot_pipeline(automate, nom_base);
+        printf("\nFichiers generes avec succes !\n");
+    }
+    break;
+    case 18:
+    if (!loaded) {
+        printf("Veuillez d'abord charger un automate (Option 1).\n");
+        break;
+    }
+
+    char file_txt[256];
+    printf("Entrez le fichier .dot de l'automate a minimiser : ");
+    char file_min18[256];
+    scanf(" %255[^\n\r]", file_min18);
+
+    printf("Entrez le fichier .txt contenant les mots : ");
+    if (scanf(" %255[^\n\r]", file_txt) == 1) {
+        Automaton *automate_18 = create_automaton();
+        if (load_automaton_from_dot(automate_18, file_min18)) {
+
+            printf("\nMinimisation en cours...\n");
+            Automaton *minimal = minimiser_brzozowski(automate_18);
+
+            if (minimal) {
+                printf("\n=== Automate Minimal ===\n");
+                display_automaton(minimal);
+
+                afficher_mots_acceptes(minimal, file_txt);
+                free_automaton(minimal);
+            } else {
+                printf("Echec de la minimisation.\n");
+            }
+        } else {
+            printf("Erreur : impossible de charger %s\n", file_min18);
+        }
+        free_automaton(automate_18);
+    }
+    break;
+            case 19:
                 printf("Au revoir !\n");
                 free_automaton(automate);
                 return 0;
