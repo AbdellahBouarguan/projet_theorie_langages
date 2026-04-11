@@ -243,3 +243,97 @@ void filtrer_mots_fichier(const Automaton *automate, const char *fichier_entree)
     printf("Analyse terminee : %d mots lus, %d mots acceptes.\n", count_total, count_acceptes);
     printf("Les mots reconnus ont ete sauvegardes dans 'MotsAccepter.txt'.\n");
 }
+
+void generer_table_symboles(const Automaton *a, const char *fichier_txt) {
+    FILE *f = fopen(fichier_txt, "r");
+    if (!f) {
+        printf("Erreur ouverture fichier %s\n", fichier_txt);
+        return;
+    }
+    Symbole table[MAX_SYMBOLES];
+    int nb_symboles = 0;
+    char ligne[512];
+    int num_ligne = 0;
+    // Lire ligne par ligne
+    while (fgets(ligne, sizeof(ligne), f)) {
+        num_ligne++;
+        // Découper les mots
+        char *token = strtok(ligne, " \t\n");
+        while (token != NULL) {
+            // Vérifier avec l'automate
+            if (mot_accepte(a, token)) {
+                // Ajouter dans la table
+                if (nb_symboles < MAX_SYMBOLES) {
+                    strcpy(table[nb_symboles].mot, token);
+                    table[nb_symboles].ligne = num_ligne;
+                    nb_symboles++;
+                }
+            }
+            token = strtok(NULL, " \t\n");
+        }
+    }
+    fclose(f);
+    // Affichage
+    printf("\n=== TABLE DES SYMBOLES ===\n");
+    for (int i = 0; i < nb_symboles; i++) {
+        printf("Mot: %-15s | Ligne: %d\n",
+               table[i].mot,
+               table[i].ligne);
+    }
+    printf("Total symboles: %d\n", nb_symboles);
+}
+
+void traiter_partie_6(const char *fichier_regex, const char *fichier_mots) {
+    FILE *fr = fopen(fichier_regex, "r");
+    if (!fr) {
+        printf("Erreur: Impossible d'ouvrir le fichier regex '%s'\n", fichier_regex);
+        return;
+    }
+    char regex[256];
+    if (fscanf(fr, "%255s", regex) != 1) {
+        printf("Erreur: Fichier regex vide.\n");
+        fclose(fr);
+        return;
+    }
+    fclose(fr);
+    
+    printf("\n--- Expression reguliere lue : %s ---\n", regex);
+    
+    // 1. Générer et afficher l'automate de Thompson
+    Automaton *thompson = regex_to_nfa(regex);
+    if (!thompson) {
+        printf("Erreur de generation de l'automate de Thompson.\n");
+        return;
+    }
+    printf("\n=== Automate de Thompson ===\n");
+    display_automaton(thompson);
+    generate_dot(thompson, "data/partie6_thompson.dot");
+
+    // 2. Générer et afficher l'automate canonique (Minimal)
+    supprimer_epsilon_transitions(thompson);
+    Automaton *dfa = determiniser(thompson);
+    if (!dfa) {
+        printf("Erreur lors de la determinisation.\n");
+        free_automaton(thompson);
+        return;
+    }
+    Automaton *canonique = minimiser_brzozowski(dfa);
+    free_automaton(dfa);
+
+    if (!canonique) {
+        printf("Erreur lors de la minimisation canonique.\n");
+        free_automaton(thompson);
+        return;
+    }
+
+    printf("\n=== Automate Canonique (Minimal) ===\n");
+    display_automaton(canonique);
+    generate_dot(canonique, "data/partie6_canonique.dot");
+
+    // 3. Lire fichier texte et enregistrer les mots acceptés dans la table des symboles
+    printf("\n=== Analyse des lexemes depuis %s ===\n", fichier_mots);
+    generer_table_symboles(canonique, fichier_mots);
+
+    free_automaton(thompson);
+    free_automaton(canonique);
+}

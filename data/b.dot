@@ -1,6 +1,0 @@
-digraph G {
-    rankdir = LR;
-    "" -> 0;
-    0 -> 1 [label = "b";];
-    1 -> fin;
-}

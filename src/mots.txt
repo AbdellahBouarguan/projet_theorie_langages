@@ -1,4 +1,0 @@
-abc
-abcb
-cbab
-bbca

@@ -31,7 +31,9 @@ int main() {
         printf("16. Minimiser l'automate (Brzozowski)\n");
         printf("17. Analyser un fichier .dot \n");
         printf("18. Generer les fichiers .txt afficher liste des mots acceptes\n");
-        printf("19. Quitter\n");
+        printf("19. Generer un tableau de symbole\n");
+        printf("20. Traiter depuis un fichier regex (Partie 6)\n");
+        printf("21. Quitter\n");
         printf("Votre choix : ");
 
         if (scanf("%d", &choix) != 1) {
@@ -190,8 +192,14 @@ int main() {
                             if (produit) {
                                 printf("\n=== Automate Produit ===\n");
                                 display_automaton(produit);
+                                char save_file[256];
+                    printf("Entrez le nom du fichier pour sauvegarder (.dot) : ");
+                if (scanf(" %255[^\n\r]", save_file) == 1) {
+                    generate_dot(produit, save_file);
+                }
                                 free_automaton(produit);
                             }
+                            
                         }
                         free_automaton(automate2);
                     }
@@ -217,6 +225,12 @@ int main() {
             if (dfa) {
                 printf("\n=== Automate Deterministe (DFA) ===\n");
                 display_automaton(dfa);
+
+                char save_file[256];
+                printf("Entrez le nom du fichier pour sauvegarder (.dot) : ");
+                if (scanf(" %255[^\n\r]", save_file) == 1) {
+                    generate_dot(dfa, save_file);
+                }
 
                 // Remplacer l'automate courant par le DFA
                 free_automaton(automate);
@@ -249,12 +263,24 @@ int main() {
             printf("\n=== Automate Original ===\n");
             display_automaton(automate_brz);
 
+            char save_file[256];
+                printf("Entrez le nom du fichier pour sauvegarder (.dot) : ");
+                if (scanf(" %255[^\n\r]", save_file) == 1) {
+                    generate_dot(automate_brz, save_file);
+                }
+
             printf("\nMinimisation par algorithme de Brzozowski...\n");
             Automaton *minimal = minimiser_brzozowski(automate_brz);
 
             if (minimal) {
                 printf("\n=== Automate Minimal (Brzozowski) ===\n");
                 display_automaton(minimal);
+
+                char save_file[256];
+                printf("Entrez le nom du fichier pour sauvegarder (.dot) : ");
+                if (scanf(" %255[^\n\r]", save_file) == 1) {
+                    generate_dot(minimal, save_file);
+                }
 
                 // Remplacer l'automate courant par le minimal
                 free_automaton(automate);
@@ -320,7 +346,29 @@ int main() {
         free_automaton(automate_18);
     }
     break;
-            case 19:
+            case 19: {
+                Automaton *a = regex_to_nfa("a.b|a");
+                supprimer_epsilon_transitions(a);
+                Automaton *dfa = determiniser(a);
+                char mots_file[256];
+                printf("Entrez le fichier texte a analyser : ");
+                scanf(" %255[^\n\r]", mots_file);
+                generer_table_symboles(dfa, mots_file);
+                free_automaton(a);
+                free_automaton(dfa);
+                break;
+            }
+            case 20: {
+                char f_regex[256];
+                char f_mots[256];
+                printf("Entrez le fichier texte contenant l'expression reguliere : ");
+                scanf(" %255[^\n\r]", f_regex);
+                printf("Entrez le fichier texte a analyser (contenant les lexemes) : ");
+                scanf(" %255[^\n\r]", f_mots);
+                traiter_partie_6(f_regex, f_mots);
+                break;
+            }
+            case 21:
                 printf("Au revoir !\n");
                 free_automaton(automate);
                 return 0;

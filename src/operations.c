@@ -583,7 +583,7 @@ static void star_regex(char *dst, const char *a) {
     snprintf(dst, MAX_REGEX, "(%s)*", a);
 }
 
-char *automaton_to_regex(Automaton *a) {
+char *automaton_to_regex(const Automaton *a) {
     static RegexMatrix R;
     static char result[MAX_REGEX];
     static Automaton copy;
@@ -749,38 +749,6 @@ static int find_index(const Automaton *a, int val) {
         if (a->etats[i] == val) return i;
     return -1;
 }
-// Fusionner états initiaux multiples en un seul
-static void fusionner_initiaux(Automaton *a) {
-    int nb = 0;
-    for (int i = 0; i < a->num_etats; i++)
-        if (a->is_initial[i]) nb++;
-
-    if (nb <= 1) return;
-
-    int premier = -1;
-    for (int i = 0; i < a->num_etats; i++) {
-        if (a->is_initial[i]) {
-            if (premier == -1) {
-                premier = i;
-            } else {
-                int val_other   = a->etats[i];
-                int val_premier = a->etats[premier];
-
-                for (int t = 0; t < a->num_transitions; t++) {
-                    if (a->transitions[t].from_etat == val_other)
-                        a->transitions[t].from_etat = val_premier;
-                    if (a->transitions[t].to_etat == val_other)
-                        a->transitions[t].to_etat = val_premier;
-                }
-
-                if (a->is_final[i])
-                    a->is_final[premier] = true;
-
-                a->is_initial[i] = false;
-            }
-        }
-    }
-}
 
 Automaton *transposer_automaton(const Automaton *a) {
     Automaton *r = create_automaton();
@@ -919,8 +887,6 @@ Automaton *minimiser_brzozowski(const Automaton *a) {
     Automaton *r1 = transposer_automaton(a);
     if (!r1) return NULL;
 
-    fusionner_initiaux(r1);
-
     // Copier alphabet avant determiniser
     r1->num_alphabet = a->num_alphabet;
     for (int i = 0; i < a->num_alphabet; i++)
@@ -940,8 +906,6 @@ Automaton *minimiser_brzozowski(const Automaton *a) {
     Automaton *r2 = transposer_automaton(d1);
     free_automaton(d1);
     if (!r2) return NULL;
-
-    fusionner_initiaux(r2);
 
     // Copier alphabet avant determiniser
     r2->num_alphabet = a->num_alphabet;

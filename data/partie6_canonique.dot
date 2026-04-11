@@ -1,0 +1,13 @@
+digraph Automaton {
+rankdir=LR;
+node [shape = circle];
+0;
+1;
+"" [shape=point];
+"" -> 0;
+0 -> 0 [label="a"];
+0 -> 0 [label="b"];
+0 -> 1 [label="c"];
+node [shape=point];
+1 -> final1;
+}
