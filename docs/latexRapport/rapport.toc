@@ -1,0 +1,57 @@
+\babel@toc {french}{}\relax 
+\contentsline {section}{\numberline {1}Introduction Générale}{4}{section.1}%
+\contentsline {section}{\numberline {2}Introduction de la Phase 1}{5}{section.2}%
+\contentsline {section}{\numberline {3}Recherche Préliminaire, Outils et Étude de Projets Existants}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Concepts Théoriques}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Format DOT et Écosystème GraphviZ}{5}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Manipulation Visuelle}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Inspiration et Étude de Projets Existants}{6}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Environnement de Travail et Choix Techniques}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Le Langage C}{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Git et Collaboration sur GitHub}{6}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Standardisation de la Compilation avec CMake}{6}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Organisation et Répartition du Travail}{8}{section.5}%
+\contentsline {section}{\numberline {6}Conception et Implémentation de la Phase 1}{8}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Structures de données (Question 1 : \texttt {automate.h})}{8}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Lecture et stockage (Question 2 : Parsing dans \texttt {parser.c})}{9}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Moteur d'affichage (Question 3 : \texttt {display.c})}{12}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Interface interactive (Question 4 : \texttt {main.c})}{13}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Difficultés Rencontrées et Solutions}{13}{section.7}%
+\contentsline {section}{\numberline {8}Conclusion de la Phase 1}{13}{section.8}%
+\contentsline {section}{\numberline {9}Introduction de la Phase 2}{14}{section.9}%
+\contentsline {section}{\numberline {10}Répartition du Travail}{14}{section.10}%
+\contentsline {section}{\numberline {11}Conception et Implémentation}{14}{section.11}%
+\contentsline {subsection}{\numberline {11.1}Génération d'un fichier DOT (Question 5)}{14}{subsection.11.1}%
+\contentsline {subsection}{\numberline {11.2}Statistiques sur les transitions (Question 6)}{15}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}Recherche d'états par étiquette (Question 7)}{15}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.4}Test de reconnaissance d'un mot (Question 8)}{15}{subsection.11.4}%
+\contentsline {subsection}{\numberline {11.5}Traitement par lots depuis un fichier .txt (Question 9)}{16}{subsection.11.5}%
+\contentsline {section}{\numberline {12}Difficultés Rencontrées et Solutions}{16}{section.12}%
+\contentsline {section}{\numberline {13}Conclusion de la Phase 2}{16}{section.13}%
+\contentsline {section}{\numberline {14}Conception et Implémentation de la Phase 3}{17}{section.14}%
+\contentsline {subsection}{\numberline {14.1}Concaténation de deux automates (Question 10)}{17}{subsection.14.1}%
+\contentsline {subsection}{\numberline {14.2}Union de deux automates (Question 11)}{18}{subsection.14.2}%
+\contentsline {subsection}{\numberline {14.3}Construction à partir d'une expression régulière (Question 12)}{18}{subsection.14.3}%
+\contentsline {subsection}{\numberline {14.4}Suppression des $\epsilon $-transitions (Question 13)}{18}{subsection.14.4}%
+\contentsline {section}{\numberline {15}Représentations Graphiques des Tests}{18}{section.15}%
+\contentsline {section}{\numberline {16}Organisation et Répartition du Travail}{20}{section.16}%
+\contentsline {section}{\numberline {17}Introduction de la Phase 4}{21}{section.17}%
+\contentsline {section}{\numberline {18}Recherche Préliminaire et Concepts Théoriques}{21}{section.18}%
+\contentsline {section}{\numberline {19}Organisation et Répartition du Travail}{21}{section.19}%
+\contentsline {section}{\numberline {20}Conception et Implémentation de la Phase 4}{22}{section.20}%
+\contentsline {subsection}{\numberline {20.1}Produit (Intersection) de deux automates (Question 14)}{22}{subsection.20.1}%
+\contentsline {subsection}{\numberline {20.2}Déterminisation d'un automate (Question 15)}{22}{subsection.20.2}%
+\contentsline {subsection}{\numberline {20.3}Minimisation par Algorithme de Brzozowski (Question 16)}{22}{subsection.20.3}%
+\contentsline {subsection}{\numberline {20.4}Génération automatique des fichiers DOT (Question 17)}{22}{subsection.20.4}%
+\contentsline {subsection}{\numberline {20.5}Filtrage des mots acceptés (Question 18)}{23}{subsection.20.5}%
+\contentsline {section}{\numberline {21}Difficultés Rencontrées et Solutions}{23}{section.21}%
+\contentsline {section}{\numberline {22}Conclusion de la Phase 4}{23}{section.22}%
+\contentsline {section}{\numberline {23}Introduction des Phases 5 et 6}{24}{section.23}%
+\contentsline {section}{\numberline {24}Concepts Théoriques et Analyse Lexicale}{24}{section.24}%
+\contentsline {section}{\numberline {25}Organisation et Répartition du Travail}{24}{section.25}%
+\contentsline {section}{\numberline {26}Conception et Implémentation}{25}{section.26}%
+\contentsline {subsection}{\numberline {26.1}Génération de la table des symboles (Partie 5)}{25}{subsection.26.1}%
+\contentsline {subsection}{\numberline {26.2}Intégration du Pipeline Automatisé (Partie 6)}{25}{subsection.26.2}%
+\contentsline {section}{\numberline {27}Difficultés Rencontrées et Solutions}{25}{section.27}%
+\contentsline {section}{\numberline {28}Conclusion de cette dernière phase}{25}{section.28}%
+\contentsline {section}{\numberline {29}Conclusion Générale}{26}{section.29}%

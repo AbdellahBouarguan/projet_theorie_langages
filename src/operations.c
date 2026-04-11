@@ -470,3 +470,549 @@ void supprimer_epsilon_transitions(Automaton *a) {
     }
   }
 }
+#define MAX_REGEX 4096
+
+typedef char RegexMatrix[MAX_ETATS][MAX_ETATS][MAX_REGEX];
+
+static int needs_parens(const char *r) {
+    if (strlen(r) <= 1) return 0;
+
+    /* Déjà entourée de parenthèses balancées ? */
+    if (r[0] == '(' && r[strlen(r) - 1] == ')') {
+        int depth = 0;
+        for (int i = 0; r[i]; i++) {
+            if (r[i] == '(') depth++;
+            else if (r[i] == ')') depth--;
+            if (depth == 0 && r[i + 1] != '\0') return 1;
+        }
+        return 0; /* parenthèses déjà balancées */
+    }
+
+    /* Contient un + au niveau racine → besoin de parenthèses */
+    int depth = 0;
+    for (int i = 0; r[i]; i++) {
+        if (r[i] == '(') depth++;
+        else if (r[i] == ')') depth--;
+        else if (r[i] == '+' && depth == 0) return 1;
+    }
+    return 0;
+}
+
+/* Concaténation : ignore les eps, ajoute parenthèses si + à la racine */
+static void concat_regex(char *dst, const char *a, const char *b) {
+    int a_empty = (strlen(a) == 0 || strcmp(a, "eps") == 0);
+    int b_empty = (strlen(b) == 0 || strcmp(b, "eps") == 0);
+
+    if (a_empty && b_empty) { strcpy(dst, ""); return; }
+    if (a_empty) { strcpy(dst, b); return; }
+    if (b_empty) { strcpy(dst, a); return; }
+
+    /* ── Simplification xx* → x* et x*x → x* ──────────────────── */
+    int la = strlen(a), lb = strlen(b);
+
+    /* Cas : a = "x" et b = "x*" → x* */
+    if (b[lb - 1] == '*') {
+        char b_base[MAX_REGEX];
+        if (b[0] == '(' && b[lb - 2] == ')') {
+            strncpy(b_base, b + 1, lb - 3);
+            b_base[lb - 3] = '\0';
+        } else {
+            strncpy(b_base, b, lb - 1);
+            b_base[lb - 1] = '\0';
+        }
+        if (strcmp(a, b_base) == 0) { strcpy(dst, b); return; }
+    }
+
+    /* Cas : a = "x*" et b = "x" → x* */
+    if (a[la - 1] == '*') {
+        char a_base[MAX_REGEX];
+        if (a[0] == '(' && a[la - 2] == ')') {
+            strncpy(a_base, a + 1, la - 3);
+            a_base[la - 3] = '\0';
+        } else {
+            strncpy(a_base, a, la - 1);
+            a_base[la - 1] = '\0';
+        }
+        if (strcmp(a_base, b) == 0) { strcpy(dst, a); return; }
+    }
+
+    /* Cas général avec parenthèses si nécessaire */
+    char pa[MAX_REGEX + 4], pb[MAX_REGEX + 4];
+    if (needs_parens(a)) snprintf(pa, sizeof(pa), "(%s)", a);
+    else strcpy(pa, a);
+
+    if (needs_parens(b)) snprintf(pb, sizeof(pb), "(%s)", b);
+    else strcpy(pb, b);
+
+    char tmp[MAX_REGEX * 2];
+    snprintf(tmp, sizeof(tmp), "%s.%s", pa, pb);
+    strcpy(dst, tmp);
+}
+
+/* Union : élimine doublons et cas vides */
+static void union_regex(char *dst, const char *a, const char *b) {
+    if (strlen(a) == 0) { strcpy(dst, b); return; }
+    if (strlen(b) == 0) { strcpy(dst, a); return; }
+    if (strcmp(a, b) == 0) { strcpy(dst, a); return; }
+    
+    char tmp[MAX_REGEX * 2];
+    snprintf(tmp, sizeof(tmp), "%s+%s", a, b);
+    strcpy(dst, tmp);
+}
+
+/* Étoile de Kleene */
+static void star_regex(char *dst, const char *a) {
+    if (strlen(a) == 0 || strcmp(a, "eps") == 0) {
+        dst[0] = '\0'; 
+        return;
+    }
+    
+    int len = strlen(a);
+    if (a[len - 1] == '*') { strcpy(dst, a); return; }
+    
+    if (len == 1) {
+        snprintf(dst, MAX_REGEX, "%s*", a); 
+        return;
+    }
+    
+    if (a[0] == '(' && a[len - 1] == ')' && !needs_parens(a)) {
+        snprintf(dst, MAX_REGEX, "%s*", a); 
+        return;
+    }
+    
+    snprintf(dst, MAX_REGEX, "(%s)*", a);
+}
+
+char *automaton_to_regex(const Automaton *a) {
+    static RegexMatrix R;
+    static char result[MAX_REGEX];
+    static Automaton copy;
+
+    memcpy(&copy, a, sizeof(Automaton));
+    supprimer_epsilon_transitions(&copy);
+
+    int n = copy.num_etats;
+
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            R[i][j][0] = '\0';
+
+    for (int t = 0; t < copy.num_transitions; t++) {
+        int i = get_state_index(&copy, copy.transitions[t].from_etat);
+        int j = get_state_index(&copy, copy.transitions[t].to_etat);
+        if (i == -1 || j == -1) continue;
+        char tmp[MAX_REGEX];
+        union_regex(tmp, R[i][j], copy.transitions[t].label);
+        strcpy(R[i][j], tmp);
+    }
+
+    int init = -1;
+    for (int i = 0; i < n; i++)
+        if (copy.is_initial[i]) { init = i; break; }
+    
+    if (init == -1) { strcpy(result, "∅"); return result; }
+
+    /* Fusionner les chemins init→k→init */
+    for (int k = 0; k < n; k++) {
+        if (k == init) continue;
+        if (strlen(R[init][k]) == 0) continue;
+        if (strlen(R[k][init]) == 0) continue;
+
+        char loop_k[MAX_REGEX], path[MAX_REGEX], tmp[MAX_REGEX];
+        star_regex(loop_k, R[k][k]);
+        concat_regex(tmp, R[init][k], loop_k);
+        concat_regex(path, tmp, R[k][init]);
+        union_regex(tmp, R[init][init], path);
+        strcpy(R[init][init], tmp);
+    }
+
+    /* Élimination des états intermédiaires */
+    bool eliminated[MAX_ETATS] = {false};
+    for (int k = 0; k < n; k++) {
+        if (k == init || copy.is_final[k] || eliminated[k]) continue;
+        
+        char loop[MAX_REGEX];
+        star_regex(loop, R[k][k]);
+        
+        for (int i = 0; i < n; i++) {
+            if (eliminated[i] || i == k || strlen(R[i][k]) == 0) continue;
+            for (int j = 0; j < n; j++) {
+                if (eliminated[j] || j == k || strlen(R[k][j]) == 0) continue;
+                char path[MAX_REGEX], tmp[MAX_REGEX];
+                concat_regex(tmp, R[i][k], loop);
+                concat_regex(path, tmp, R[k][j]);
+                union_regex(tmp, R[i][j], path);
+                strcpy(R[i][j], tmp);
+            }
+        }
+        eliminated[k] = true;
+    }
+
+    /* Construction du résultat final */
+    result[0] = '\0';
+    for (int f = 0; f < n; f++) {
+        if (!copy.is_final[f] || eliminated[f]) continue;
+        
+        char path[MAX_REGEX], tmp[MAX_REGEX], loop_f[MAX_REGEX];
+        star_regex(loop_f, R[f][f]);
+        
+        if (f == init) {
+            char loop_init[MAX_REGEX];
+            star_regex(loop_init, R[init][init]);
+            union_regex(tmp, result, strlen(loop_init) ? loop_init : "eps");
+        } else {
+            char loop_init[MAX_REGEX];
+            star_regex(loop_init, R[init][init]);
+            concat_regex(path, loop_init, R[init][f]);
+            concat_regex(tmp, path, loop_f);
+            char res_tmp[MAX_REGEX];
+            union_regex(res_tmp, result, tmp);
+            strcpy(tmp, res_tmp);
+        }
+        strcpy(result, tmp);
+    }
+
+    if (result[0] == '\0') strcpy(result, "∅");
+    return result;
+}
+
+Automaton *produit_automates(const Automaton *a1, const Automaton *a2) {
+    Automaton *res = create_automaton();
+    int max_id_a2 = 0;
+
+    for (int i = 0; i < a2->num_etats; i++)
+        if (a2->etats[i] > max_id_a2)
+            max_id_a2 = a2->etats[i];
+
+    int base = max_id_a2 + 1;
+    int queue[MAX_ETATS];
+    int front = 0, rear = 0;
+
+    int init = a1->etats[0] * base + a2->etats[0];
+    res->etats[0] = init;
+    res->is_initial[0] = true;
+    res->is_final[0] = a1->is_final[0] && a2->is_final[0];
+    res->num_etats = 1;
+
+    queue[rear++] = init;
+
+    while (front < rear) {
+        int current = queue[front++];
+        int s1 = current / base;
+        int s2 = current % base;
+
+        for (int i = 0; i < a1->num_transitions; i++) {
+            for (int j = 0; j < a2->num_transitions; j++) {
+                if (strcmp(a1->transitions[i].label, a2->transitions[j].label) != 0)
+                    continue;
+                if (strcmp(a1->transitions[i].label, "epsilon") == 0)
+                    continue;
+                if (a1->transitions[i].from_etat != s1 || a2->transitions[j].from_etat != s2)
+                    continue;
+
+                int dest = a1->transitions[i].to_etat * base + a2->transitions[j].to_etat;
+
+                int index = -1;
+                for (int k = 0; k < res->num_etats; k++) {
+                    if (res->etats[k] == dest) {
+                        index = k;
+                        break;
+                    }
+                }
+
+                if (index == -1) {
+                    index = res->num_etats;
+                    res->etats[index] = dest;
+                    res->is_initial[index] = false;
+
+                    int t1 = a1->transitions[i].to_etat;
+                    int t2 = a2->transitions[j].to_etat;
+                    int idx1 = get_state_index(a1, t1);
+                    int idx2 = get_state_index(a2, t2);
+
+                    res->is_final[index] = a1->is_final[idx1] && a2->is_final[idx2];
+                    res->num_etats++;
+                    queue[rear++] = dest;
+                }
+
+                Transition *t = &res->transitions[res->num_transitions++];
+                t->from_etat = current;
+                t->to_etat = dest;
+                strcpy(t->label, a1->transitions[i].label);
+            }
+        }
+    }
+    return res;
+}
+static int find_index(const Automaton *a, int val) {
+    for (int i = 0; i < a->num_etats; i++)
+        if (a->etats[i] == val) return i;
+    return -1;
+}
+
+Automaton *transposer_automaton(const Automaton *a) {
+    Automaton *r = create_automaton();
+    if (!r) return NULL;
+
+    // Copier l'alphabet
+    r->num_alphabet = a->num_alphabet;
+    for (int i = 0; i < a->num_alphabet; i++)
+        strcpy(r->alphabet[i], a->alphabet[i]);
+
+    // Copier les états en swappant initiaux ↔ finaux
+    // Renumérotation propre 0, 1, 2...
+    for (int i = 0; i < a->num_etats; i++) {
+        r->etats[i]      = i;
+        r->is_initial[i] = a->is_final[i];
+        r->is_final[i]   = a->is_initial[i];
+    }
+    r->num_etats = a->num_etats;
+
+    // Inverser transitions en utilisant les indices
+    for (int t = 0; t < a->num_transitions; t++) {
+        int idx_from = find_index(a, a->transitions[t].from_etat);
+        int idx_to   = find_index(a, a->transitions[t].to_etat);
+        if (idx_from == -1 || idx_to == -1) continue;
+
+        Transition tr;
+        tr.from_etat = r->etats[idx_to];
+        tr.to_etat   = r->etats[idx_from];
+        strcpy(tr.label, a->transitions[t].label);
+        r->transitions[r->num_transitions++] = tr;
+    }
+
+    return r;
+}
+
+Automaton *determiniser(const Automaton *nfa) {
+    Automaton *dfa = create_automaton();
+    int sets[MAX_ETATS][MAX_ETATS];
+    int set_sizes[MAX_ETATS] = {0};
+    int num_sets = 0;
+
+    // Etat initial
+    for (int i = 0; i < nfa->num_etats; i++) {
+        if (nfa->is_initial[i]) {
+            sets[0][set_sizes[0]++] = i;
+        }
+    }
+
+    dfa->etats[0]      = 0;
+    dfa->is_initial[0] = true;
+    dfa->is_final[0]   = false;
+    num_sets           = 1;
+    dfa->num_etats     = 1;
+
+    //  Vérifier si l'état initial est final
+    for (int i = 0; i < set_sizes[0]; i++) {
+        if (nfa->is_final[sets[0][i]]) {
+            dfa->is_final[0] = true;
+            break;
+        }
+    }
+
+    // Copier l'alphabet
+    dfa->num_alphabet = nfa->num_alphabet;
+    for (int i = 0; i < nfa->num_alphabet; i++)
+        strcpy(dfa->alphabet[i], nfa->alphabet[i]);
+
+    for (int s = 0; s < num_sets; s++) {
+        for (int a = 0; a < nfa->num_alphabet; a++) {
+            int new_set[MAX_ETATS];
+            int new_size = 0;
+
+            for (int i = 0; i < set_sizes[s]; i++) {
+                int state = sets[s][i];
+                for (int t = 0; t < nfa->num_transitions; t++) {
+                    if (nfa->transitions[t].from_etat == nfa->etats[state] &&
+                        strcmp(nfa->transitions[t].label, nfa->alphabet[a]) == 0) {
+                        int idx = get_state_index(nfa, nfa->transitions[t].to_etat);
+
+                        bool exists = false;
+                        for (int m = 0; m < new_size; m++)
+                            if (new_set[m] == idx) exists = true;
+                        if (!exists) new_set[new_size++] = idx;
+                    }
+                }
+            }
+
+            if (new_size == 0) continue;
+
+            int found = -1;
+            for (int k = 0; k < num_sets; k++) {
+                if (set_sizes[k] == new_size) {
+                    int match_count = 0;
+                    for (int m1 = 0; m1 < new_size; m1++)
+                        for (int m2 = 0; m2 < new_size; m2++)
+                            if (sets[k][m1] == new_set[m2]) match_count++;
+                    if (match_count == new_size) {
+                        found = k;
+                        break;
+                    }
+                }
+            }
+
+            if (found == -1) {
+                memcpy(sets[num_sets], new_set, sizeof(int) * new_size);
+                set_sizes[num_sets] = new_size;
+                dfa->etats[num_sets] = num_sets;
+
+                bool is_final = false;
+                for (int i = 0; i < new_size; i++) {
+                    if (nfa->is_final[new_set[i]]) {
+                        is_final = true;
+                        break;
+                    }
+                }
+                dfa->is_final[num_sets] = is_final;
+                found = num_sets;
+                num_sets++;
+            }
+
+            Transition *tr = &dfa->transitions[dfa->num_transitions++];
+            tr->from_etat  = s;
+            tr->to_etat    = found;
+            strcpy(tr->label, nfa->alphabet[a]);
+        }
+    }
+
+    dfa->num_etats = num_sets;
+    return dfa;
+}
+
+Automaton *minimiser_brzozowski(const Automaton *a) {
+    if (!a) return NULL;
+
+    printf("  Etape 1 : Transposer...\n");
+    Automaton *r1 = transposer_automaton(a);
+    if (!r1) return NULL;
+
+    // Copier alphabet avant determiniser
+    r1->num_alphabet = a->num_alphabet;
+    for (int i = 0; i < a->num_alphabet; i++)
+        strcpy(r1->alphabet[i], a->alphabet[i]);
+
+    printf("  Etape 2 : Determiniser...\n");
+    Automaton *d1 = determiniser(r1);
+    free_automaton(r1);
+    if (!d1) return NULL;
+
+    // Copier alphabet dans d1
+    d1->num_alphabet = a->num_alphabet;
+    for (int i = 0; i < a->num_alphabet; i++)
+        strcpy(d1->alphabet[i], a->alphabet[i]);
+
+    printf("  Etape 3 : Transposer...\n");
+    Automaton *r2 = transposer_automaton(d1);
+    free_automaton(d1);
+    if (!r2) return NULL;
+
+    // Copier alphabet avant determiniser
+    r2->num_alphabet = a->num_alphabet;
+    for (int i = 0; i < a->num_alphabet; i++)
+        strcpy(r2->alphabet[i], a->alphabet[i]);
+
+    printf("  Etape 4 : Determiniser...\n");
+    Automaton *d2 = determiniser(r2);
+    free_automaton(r2);
+    if (!d2) return NULL;
+
+    // Copier alphabet dans résultat final
+    d2->num_alphabet = a->num_alphabet;
+    for (int i = 0; i < a->num_alphabet; i++)
+        strcpy(d2->alphabet[i], a->alphabet[i]);
+
+    printf("  Minimisation terminee !\n");
+    return d2;
+}
+void generer_dot_pipeline(const Automaton *original, const char *nom_base) {
+    if (!original || !nom_base) return;
+
+    char filename[300];
+
+    // ── (1) Automate initial ──────────────────────────────
+    snprintf(filename, sizeof(filename), "%s_initial.dot", nom_base);
+    generate_dot(original, filename);
+    printf("  [1] Automate initial     → %s\n", filename);
+
+    // ── (2) Automate déterministe ─────────────────────────
+    Automaton *dfa = determiniser(original);
+    if (dfa) {
+        snprintf(filename, sizeof(filename), "%s_deterministe.dot", nom_base);
+        generate_dot(dfa, filename);
+        printf("  [2] Automate deterministe → %s\n", filename);
+
+        // ── (3) Automate minimal ──────────────────────────
+        Automaton *minimal = minimiser_brzozowski(dfa);
+        if (minimal) {
+            snprintf(filename, sizeof(filename), "%s_minimal.dot", nom_base);
+            generate_dot(minimal, filename);
+            printf("  [3] Automate minimal     → %s\n", filename);
+            free_automaton(minimal);
+        } else {
+            printf("  Echec minimisation.\n");
+        }
+        free_automaton(dfa);
+    } else {
+        printf("  Echec determinisation.\n");
+    }
+}
+bool mot_accepte(const Automaton *a, const char *mot) {
+    // Trouver l'état initial
+    int etat_courant = -1;
+    for (int i = 0; i < a->num_etats; i++) {
+        if (a->is_initial[i]) {
+            etat_courant = i;
+            break;
+        }
+    }
+    if (etat_courant == -1) return false;
+
+    // Parcourir chaque symbole du mot
+    for (int i = 0; mot[i] != '\0'; i++) {
+        char symbole[10];
+        snprintf(symbole, sizeof(symbole), "%c", mot[i]);
+
+        int next = -1;
+        for (int t = 0; t < a->num_transitions; t++) {
+            int idx = get_state_index(a, a->transitions[t].from_etat);
+            if (idx == etat_courant &&
+                strcmp(a->transitions[t].label, symbole) == 0) {
+                next = get_state_index(a, a->transitions[t].to_etat);
+                break;
+            }
+        }
+
+        if (next == -1) return false; // transition inexistante
+        etat_courant = next;
+    }
+
+    // Vérifier si état final
+    return a->is_final[etat_courant];
+}
+
+void afficher_mots_acceptes(const Automaton *minimal, const char *fichier_txt) {
+    FILE *f = fopen(fichier_txt, "r");
+    if (!f) {
+        printf("Erreur : impossible d'ouvrir %s\n", fichier_txt);
+        return;
+    }
+
+    char mot[256];
+    int total = 0, acceptes = 0;
+
+    printf("\n=== Mots acceptes par l'automate minimal ===\n");
+
+    while (fscanf(f, "%255s", mot) == 1) {
+        total++;
+        if (mot_accepte(minimal, mot)) {
+            printf("   '%s' → ACCEPTE\n", mot);
+            acceptes++;
+        } else {
+            printf("  ❌ '%s' → REJETE\n", mot);
+        }
+    }
+
+    fclose(f);
+    printf("\nResultat : %d/%d mots acceptes.\n", acceptes, total);
+}

@@ -1,0 +1,4 @@
+int float char double return if else while
+x + = 10 ;
+x a b c abc a.b a
+hello

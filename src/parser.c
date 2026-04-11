@@ -159,7 +159,7 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename)
           }
           else
           {
-            sscanf(label_pos, "label=%63[^ \t;,\]]", label_str);
+            sscanf(label_pos, "label=%63[^] \t;,]", label_str);
           }
         }
 

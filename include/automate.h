@@ -7,6 +7,7 @@
 #define MAX_TRANSITIONS 500
 #define MAX_ALPHABET 50
 #define MAX_LABEL_LEN 64
+#define MAX_SYMBOLES 1000
 
 // Structure pour une transition
 typedef struct {
@@ -36,8 +37,8 @@ bool load_automaton_from_dot(Automaton *automate, const char *filename);
 void display_automaton(const Automaton *automate);
 
 // Fonctionnalités partie 2
-void generate_dot(Automaton *a, char *filename);
-void generate_dot_interactive(Automaton *a, char *filename);
+void generate_dot(const Automaton *a, const char *filename);
+void generate_dot_interactive(Automaton *a, const char *filename);
 void afficher_etat_max_transitions(const Automaton *automate);
 void afficher_etats_transition_label(const Automaton *automate,
                                      const char *label);
@@ -51,5 +52,24 @@ Automaton *concatener_automates(const Automaton *a1, const Automaton *a2);
 Automaton *union_automates(const Automaton *a1, const Automaton *a2);
 Automaton *regex_to_nfa(const char *regex);
 void supprimer_epsilon_transitions(Automaton *a);
+char *automaton_to_regex(const Automaton *a);
+
+// Fonctionnalités partie 4
+Automaton *produit_automates(const Automaton *a1, const Automaton *a2);
+Automaton *determiniser(const Automaton *nfa);
+Automaton *transposer_automaton(const Automaton *a);
+Automaton *minimiser_brzozowski(const Automaton *a);
+void generer_dot_pipeline(const Automaton *original, const char *nom_base);
+bool mot_accepte(const Automaton *a, const char *mot);
+void afficher_mots_acceptes(const Automaton *minimal, const char *fichier_txt);
+// Fonctionnalités partie 5
+typedef struct {
+    char mot[256];
+    int ligne;
+} Symbole;
+void generer_table_symboles(const Automaton *a, const char *fichier_txt);
+
+// Fonctionnalités partie 6
+void traiter_partie_6(const char *fichier_regex, const char *fichier_mots);
 
 #endif // AUTOMATE_H

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-void generate_dot(Automaton *a, char *filename) {
+void generate_dot(const Automaton *a, const char *filename) {
   FILE *f = fopen(filename, "w");
   if (f == NULL) {
     printf("Erreur création fichier.\n");
@@ -35,7 +35,7 @@ void generate_dot(Automaton *a, char *filename) {
   printf("Automate exporté avec succès dans '%s'.\n", filename);
 }
 
-void generate_dot_interactive(Automaton *a, char *filename) {
+void generate_dot_interactive(Automaton *a, const char *filename) {
   FILE *f = fopen(filename, "w");
   if (f == NULL) {
     printf("Erreur création fichier.\n");

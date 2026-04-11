@@ -1,0 +1,99 @@
+=== Projet Theorie des Langages ===
+
+Menu:
+1. Charger un automate a partir d'un fichier .dot
+2. Afficher l'automate
+3. Generer un fichier .dot
+4. Afficher l'etat avec le plus de transitions entrantes/sortantes
+5. Afficher les etats avec une transition sortante d'une etiquette donnee
+6. Tester un mot saisi au clavier
+7. Analyser un fichier .txt et generer MotsAccepter.txt
+9. Concatener deux automates (.dot)
+10. Union de deux automates (.dot)
+11. Expression reguliere vers NFA
+12. Supprimer les transitions epsilon
+13. Automate vers expression reguliere
+14. Produit de deux automates (.dot)
+15. Determiniser l'automate
+16. Minimiser l'automate (Brzozowski)
+17. Analyser un fichier .dot 
+18. Generer les fichiers .txt afficher liste des mots acceptes
+19. Generer un tableau de symbole
+20. Traiter depuis un fichier regex (Partie 6)
+21. Quitter
+Votre choix : Entrez le fichier texte contenant l'expression reguliere : Entrez le fichier texte a analyser (contenant les lexemes) : 
+--- Expression reguliere lue : (a|b)*.c ---
+
+=== Automate de Thompson ===
+
+=== Informations de l'Automate ===
+Etats (Q) : { q0, q1, q2, q3, q4, q5, q6, q7, q8, q9 }
+Alphabet (Sigma) : { a, b, c }
+Etats initiaux (I) : { q0 }
+Etats finaux (F) : { q9 }
+Transitions (delta) :
+  q2 --(a)--> q3
+  q4 --(b)--> q5
+  q1 --(epsilon)--> q2
+  q1 --(epsilon)--> q4
+  q3 --(epsilon)--> q6
+  q5 --(epsilon)--> q6
+  q0 --(epsilon)--> q7
+  q0 --(epsilon)--> q1
+  q6 --(epsilon)--> q7
+  q6 --(epsilon)--> q1
+  q8 --(c)--> q9
+  q7 --(epsilon)--> q8
+==================================
+
+Automate exporté avec succès dans 'data/partie6_thompson.dot'.
+  Etape 1 : Transposer...
+  Etape 2 : Determiniser...
+  Etape 3 : Transposer...
+  Etape 4 : Determiniser...
+  Minimisation terminee !
+
+=== Automate Canonique (Minimal) ===
+
+=== Informations de l'Automate ===
+Etats (Q) : { q0, q1 }
+Alphabet (Sigma) : { a, b, c }
+Etats initiaux (I) : { q0 }
+Etats finaux (F) : { q1 }
+Transitions (delta) :
+  q0 --(a)--> q0
+  q0 --(b)--> q0
+  q0 --(c)--> q1
+==================================
+
+Automate exporté avec succès dans 'data/partie6_canonique.dot'.
+
+=== Analyse des lexemes depuis data/cas_19_symboles.txt ===
+
+=== TABLE DES SYMBOLES ===
+Mot: c               | Ligne: 3
+Mot: abc             | Ligne: 3
+Total symboles: 2
+
+Menu:
+1. Charger un automate a partir d'un fichier .dot
+2. Afficher l'automate
+3. Generer un fichier .dot
+4. Afficher l'etat avec le plus de transitions entrantes/sortantes
+5. Afficher les etats avec une transition sortante d'une etiquette donnee
+6. Tester un mot saisi au clavier
+7. Analyser un fichier .txt et generer MotsAccepter.txt
+9. Concatener deux automates (.dot)
+10. Union de deux automates (.dot)
+11. Expression reguliere vers NFA
+12. Supprimer les transitions epsilon
+13. Automate vers expression reguliere
+14. Produit de deux automates (.dot)
+15. Determiniser l'automate
+16. Minimiser l'automate (Brzozowski)
+17. Analyser un fichier .dot 
+18. Generer les fichiers .txt afficher liste des mots acceptes
+19. Generer un tableau de symbole
+20. Traiter depuis un fichier regex (Partie 6)
+21. Quitter
+Votre choix : Au revoir !

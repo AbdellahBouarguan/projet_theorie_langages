@@ -1,6 +1,0 @@
-a
-aa
-ab
-abc
-bc
-bca
