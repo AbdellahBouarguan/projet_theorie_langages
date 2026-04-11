@@ -96,7 +96,7 @@ Pr. \textsc{Al Achhab Mohammed}
 \end{flushright}
 \end{minipage}
 }
-\date{Période de réalisation : 23 Février 2026 - 23 Mars 2026}
+\date{Période de réalisation : 23 Février 2026 - 11 Avril 2026}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
@@ -413,6 +413,140 @@ Pour cette phase finale, l'équipe a adopté une structure de développement en 
     \item \textbf{Marouane} et \textbf{Ilyass} : Développement et optimisation du module de fermeture-epsilon et de la structure de backtracking.
     \item \textbf{Nafisa} : Maintenance globale, tests d'intégration et mise à jour de l'interface utilisateur pour inclure les nouvelles opérations.
 \end{itemize}
+
+\newpage
+\begin{center}
+\vspace*{1cm}
+\HRule \\[0.5cm]
+\textbf{\huge Partie 4 : Optimisation des automates} \\[0.5cm]
+\Large Période de réalisation : 29 Mars 2026 - 4 Avril 2026 \\
+\HRule \\
+\vspace*{1cm}
+\end{center}
+
+\section{Introduction de la Phase 4}
+Cette phase finale porte sur l'optimisation mathématique des automates finis (produit analytique, déterminisation et minimisation), afin de réduire leur taille en mémoire et d'améliorer leur efficacité de traitement tout en préservant stricto sensu le langage reconnu. 
+
+\section{Recherche Préliminaire et Concepts Théoriques}
+Avant l'implémentation, nous nous sommes appuyés sur les définitions formelles du cours :
+\begin{itemize}
+    \item \textbf{Produit d'automates} : Permet de construire un automate reconnaissant l'intersection des langages $L(A)$ et $L(B)$. Les états du nouvel automate sont définis par le produit cartésien des états, soit des couples $(q_1, q_2)$.
+    \item \textbf{Déterminisation} : Transformation d'un AFN en AFD équivalent via la méthode de construction par sous-ensembles (calcul des fermetures epsilon et des états accessibles).
+    \item \textbf{Minimisation (Algorithme de Brzozowski)} : Méthode algébrique élégante reposant sur la transposition et la déterminisation successive : $Det(Trans(Det(Trans(A))))$.
+    \item \textbf{Transposition} : Inversion du sens de l'ensemble des transitions et échange des rôles entre états initiaux et finaux d'un automate.
+\end{itemize}
+
+\section{Organisation et Répartition du Travail}
+Pour mener à bien cette dernière itération d'optimisation complexe, l'équipe s'est de nouveau divisée stratégiquement :
+\begin{itemize}
+    \item \textbf{Abdellah} : En charge du module de filtrage des mots lus depuis le fichier texte, des tests d'intégration complets, et de la mise à jour finale de l'interface utilisateur.
+    \item \textbf{Nizar} : Développement exclusif du moteur de minimisation (Algorithme de Brzozowski) et de la logique de transposition.
+    \item \textbf{Marouane} : Modélisation mathématique et implémentation fine du produit cartésien d'automates.
+    \item \textbf{Ilyass} : Ingénierie sur le moteur \texttt{.dot} pour la génération automatique du \textit{pipeline} visuel (initial, déterministe, minimal).
+    \item \textbf{Nafisa} : Architecture logicielle globale, développement de la délicate phase de déterminisation (manipulation des sous-ensembles) et coordination de l'équipe lors de la fusion finale.
+\end{itemize}
+
+\section{Conception et Implémentation de la Phase 4}
+
+\subsection{Produit (Intersection) de deux automates (Question 14)}
+Pour la \textbf{Question 14}, nous avons développé la fonction \texttt{produit\_automates}. Son algorithme utilise un parcours en largeur (BFS) à l'aide d'une file d'attente (queue) pour générer récursivement les états valides atteignables. Pour garantir l'unicité des nouveaux états couplés créés à partir des paires $(q_1, q_2)$, nous appliquons une technique de codage mathématique condensée : \texttt{dest = s1 * base + s2}, où la variable \texttt{base} correspond à l'identifiant maximum des états du second automate incrémenté de un.
+
+\subsection{Déterminisation d'un automate (Question 15)}
+Pour la \textbf{Question 15}, notre fonction \texttt{determiniser} implémente la fameuse \textit{powerset construction}. Chaque état du nouvel AFD généré correspond à un ensemble d'états de l'AFN de départ.
+Un système d'indexation via un tableau bidimensionnel (\texttt{sets[MAX\_ETATS][MAX\_ETATS]}) est utilisé pour mémoriser les sous-ensembles construits, vérifier rigoureusement s'ils ont déjà été rencontrés avant d'ajouter une nouvelle transition et ainsi éviter les redondances ou boucles illogiques.
+
+\subsection{Minimisation par Algorithme de Brzozowski (Question 16)}
+Pour la \textbf{Question 16}, l'objectif est d'obtenir l'automate DFA le plus compact reconnaissant le langage global. Implémentée dans \texttt{minimiser\_brzozowski}, la méthode s'articule ainsi :
+
+\begin{lstlisting}[language=C, caption=Principe interne de l'algorithme de Brzozowski (operations.c)]
+Automaton *minimiser_brzozowski(const Automaton *a) {
+    Automaton *r1 = transposer_automaton(a);
+    Automaton *d1 = determiniser(r1);
+    Automaton *r2 = transposer_automaton(d1);
+    Automaton *d2 = determiniser(r2);
+    // (Puis libération de la mémoire allouée par r1, d1, r2...)
+    return d2;
+}
+\end{lstlisting}
+
+La fonction de transposition (\texttt{transposer\_automaton}) associée intervertit le sens de toutes les flèches du graph en s'appuyant sur les tableaux de booléens \texttt{is\_initial} et \texttt{is\_final}.
+
+\subsection{Génération automatique des fichiers DOT (Question 17)}
+Ciblant la \textbf{Question 17}, notre outil \texttt{generer\_dot\_pipeline} automatise un \textit{pipeline} complet de rendu graphique. Lorsqu'on lui fournit un automate original en mémoire, il enchaine les fonctions de transformations requises pour générer instantanément les trois sous-fichiers :
+\begin{itemize}
+    \item \texttt{xyz\_initial.dot}
+    \item \texttt{xyz\_deterministe.dot}
+    \item \texttt{xyz\_minimal.dot}
+\end{itemize}
+
+\subsection{Filtrage des mots acceptés (Question 18)}
+Enfin, la \textbf{Question 18} valide fonctionnellement l'automate le plus minime à travers la routine \texttt{afficher\_mots\_acceptes}. Le parser C itère sur un fichier d'essai texte, ligne par ligne. Via l'implémentation \texttt{mot\_accepte}, le programme simule le parcours séquentiel au sein du graph minimal pour chaque mot lue, en affichant élégamment \texttt{ACCEPTE} ou un \texttt{REJETE}.
+
+\section{Difficultés Rencontrées et Solutions}
+Comme pour les étapes mathématiques précédentes, divers obstacles ont ralenti l'équipe :
+\begin{enumerate}
+    \item \textbf{Explosion Combinatoire} : La complexité exponentielle due à la modélisation en mémoire des sous-ensembles de la déterminisation nous a causé des soucis mémoires. Un système itératif par tableau en C a été préféré à la récursion pure.
+    \item \textbf{Filtrage Epsilon} : Les transitions Epsilon ont posé de sérieux problèmes d'exécution en provoquant des boucles lors des calculs de fermetures. Il a fallu s'assurer que notre système les évite pour la déterminisation DFA de cette 4ème étape.
+    \item \textbf{Fusion Minutieuse post-Transposition} : Le respect des multiples états initiaux après la première inversion a nécessité un traitement particulier dans la méthode de Brzozowski afin de ne pas fausser la définition de l'AFD intermédiaire.
+\end{enumerate}
+
+\section{Conclusion de la Phase 4}
+À l'issue de cette quatrième phase de développement, le pipeline de traitement s'avère totalement opérationnel. L'équipe est en mesure d'analyser, de combiner, puis d'optimiser radicalement la taille de structure des automates finis d'entrée complexes sans perdre la validité des grammaires de langages qu'ils représentent.
+
+\newpage
+\begin{center}
+\vspace*{1cm}
+\HRule \\[0.5cm]
+\textbf{\huge Partie 5 et 6 : Table des Symboles et Intégration} \\[0.5cm]
+\Large Période de réalisation : 5 Avril 2026 - 11 Avril 2026 \\
+\HRule \\
+\vspace*{1cm}
+\end{center}
+
+\section{Introduction des Phases 5 et 6}
+Les deux ultimes phases couronnent l'aboutissement du projet. La \textbf{Partie 5} modélise l'étape fondamentale de l'analyse lexicale d'un compilateur : la création d'une Table des Symboles. La \textbf{Partie 6} consiste en une validation croisée globale du pipeline logiciel entier, transformant une simple expression régulière lue depuis un fichier en un analyseur lexical complet, automatisé et graphique.
+
+\section{Concepts Théoriques et Analyse Lexicale}
+\begin{itemize}
+    \item \textbf{Lexème (Token)} : Séquence de caractères formant une unité sémantique valide (reconnu par l'automate du langage).
+    \item \textbf{Table des Symboles} : Structure de données vitale orientée dictionnaire permettant au compilateur ou l'interpréteur de retracer chaque variable/mot et de retenir son numéro de ligne pour une potentielle gestion future des erreurs syntaxiques.
+    \item \textbf{Automate Canonique} : C'est le résultat direct de la minimisation de l'automate DFA. L'automate le plus minimal et le plus performant pour opérer l'analyse lexicale sans perte de temps.
+\end{itemize}
+
+\section{Organisation et Répartition du Travail}
+Pour cette ligne droite finale, l'équipe s'est réunie afin de finaliser et lier les différents modules indépendants construits jusqu'ici :
+\begin{itemize}
+    \item \textbf{Nafisa} et \textbf{Nizar}: Implémentation du système de \textit{tokenisation} avec le suivi de numéros de lignes (découpage du fichier source) pour la Partie 5.
+    \item \textbf{Abdellah} et \textbf{Marouane}: Conception de la fonction directrice de la Partie 6 branchant les séquences (Regex $\rightarrow$ NFA $\rightarrow$ DFA $\rightarrow$ Minimal $\rightarrow$ Table des Symboles).
+    \item \textbf{Ilyass} : Finalisation des rapports visuels (\texttt{partie6\_thompson.dot} et \texttt{partie6\_canonique.dot}) et ajustements de l'interface console.
+\end{itemize}
+
+\section{Conception et Implémentation}
+
+\subsection{Génération de la table des symboles (Partie 5)}
+La fonction \texttt{generer\_table\_symboles} lit un fichier source complet (\texttt{fichier\_txt}) ligne par ligne à travers la fonction \texttt{fgets}. Elle maintient prudemment un compteur d'avancement \texttt{num\_ligne}.
+En C, nous accomplissons l'extraction lexicale en utilisant la fonction standard \texttt{strtok} qui découpe la ligne en termes d'espaces et sauts de lignes de façon itérative. Chaque lexème (\textit{token}) extrait sert de mot d'alimentation pour notre simulateur d'automate interne (\texttt{mot\_accepte}).  
+Si validé, ce lexème ainsi que sa ligne courante, tombent dans une structure logicielle précise \texttt{Symbole table[MAX\_SYMBOLES]} qui s'édite visuellement sur la console du terminal.
+
+\subsection{Intégration du Pipeline Automatisé (Partie 6)}
+Pour relier les fondations de ce compilateur sémantique, la fonction intégratrice \texttt{traiter\_partie\_6} charge un fichier \texttt{regex.txt}.
+Dans un balai coordonné, le pipeline informatique développé lance l'action suivante :
+\begin{enumerate}
+    \item Transformation de l'expression mathématique et construction récursive de l'automate formel (\texttt{regex\_to\_nfa}).
+    \item Impression de la vue de Thompson en DOT.
+    \item Purge des faiblesses (\texttt{supprimer\_epsilon\_transitions}) et déterminisation solide de l'Automate (\texttt{determiniser}).
+    \item Tassement du graph avec \texttt{minimiser\_brzozowski} pour accoster sur un \textbf{Automate Canonique}.
+    \item Appel du module développé à l'étape 5 avec cet automate canonique pour lire un fichier cible et restituer numériquement sa table de symboles globale.
+\end{enumerate}
+
+\section{Difficultés Rencontrées et Solutions}
+\begin{enumerate}
+    \item \textbf{Corruption de la mémoire (\textit{strtok})} : Le C manie les chaînes avec sévérité, et \texttt{strtok} a causé une modification permanente (\textit{mutation}) des variables passées en paramètres d'où l'importance de manipuler nos buffers localement via \texttt{char ligne[512]}.
+    \item \textbf{Pertes Mémoires} : Lors de l'enchaînement de la Partie 6, la saturation de la RAM (fuit mémoire) pointait alors que la mémoire des algorithmes intermédiaires non conservées (Thompson, DFA non minimal) était stockée. Nous avons encadré sérieusement cela en insérant une libération de mémoire immédiate (\texttt{free\_automaton}) après chaque phase transitoire.
+\end{enumerate}
+
+\section{Conclusion de cette dernière phase}
+Les deux parties clôturent un travail laborieux par la concrétisation ultime du projet de compilation. L'architecture a prouvé une excellente robustesse pour soutenir un volume non anodin de lexèmes depuis un fichier source complexe jusqu'à un automate de reconnaissance optimal créé à la volée.
 
 \section{Conclusion Générale}
 Ce projet nous a permis de concrétiser les concepts abstraits de la théorie des langages en un outil logiciel robuste et polyvalent. De la simple lecture d'un fichier DOT à la transformation complexe d'expressions régulières en automates optimisés, nous avons couvert l'intégralité du pipeline de traitement. Cette expérience a renforcé nos compétences en programmation système (C), en gestion de versions (Git) et en travail d'équipe collaboratif.
